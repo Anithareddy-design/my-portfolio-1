@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Personal Portfolio Website — Interactive Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #030712;
+      color: #F8FAFC;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Presentation Container */
+    #pres-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+      transform-origin: center center;
+      background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+                  radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 45%),
+                  linear-gradient(135deg, #060C17 0%, #030712 100%);
+      padding: 70px 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* Keyframe Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .slide.active .anim-1 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+    .slide.active .anim-2 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+    .slide.active .anim-3 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+    .slide.active .anim-4 { animation: zoomIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+
+    /* Header & Footer */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 30px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38BDF8;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38BDF8;
+      box-shadow: 0 0 10px #38BDF8;
+    }
+    .univ-tag {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #94A3B8;
+      letter-spacing: 1px;
+    }
+
+    .slide-body {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 25px 0;
+    }
+
+    .slide-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 50px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .slide-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-subtitle {
+      font-size: 20px;
+      color: #94A3B8;
+      max-width: 950px;
+      line-height: 1.6;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 20px;
+      font-size: 14px;
+      color: #64748B;
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.1);
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
+    }
+
+    .browser-frame {
+      background: #0B132B;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+    .browser-header {
+      background: #0F172A;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .browser-dots { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #F59E0B; }
+    .dot-green { background: #10B981; }
+    .browser-url {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 4px 16px;
+      font-size: 13px;
+      color: #94A3B8;
+      flex: 1;
+      font-family: monospace;
+      text-align: center;
+    }
+    .browser-content img { width: 100%; height: auto; display: block; }
+
+    .tablet-frame { border: 8px solid #1E293B; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); background: #000; }
+    .mobile-frame { border: 8px solid #1E293B; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); background: #000; }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38BDF8;
+      margin-bottom: 18px;
+    }
+
+    /* On-Screen Navigation Bar */
+    #nav-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 40px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-btn {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38BDF8;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover {
+      background: #38BDF8;
+      color: #030712;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+    .slide-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+      letter-spacing: 1px;
+    }
+
+    /* Progress bar */
+    #progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #38BDF8, #818CF8);
+      z-index: 1001;
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="pres-container">
+<div class="slide active" id="slide-1">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> B.Tech CSE Project Review</div>
+      <div class="univ-tag">KL UNIVERSITY</div>
+    </div>
+    <div class="slide-body" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center;">
+      <div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #38BDF8; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;">
+          Student Project Review Presentation
+        </div>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 58px; font-weight: 800; color: #FFF; line-height: 1.1; margin-bottom: 20px;">
+          PERSONAL PORTFOLIO <br><span style="background: linear-gradient(135deg, #38BDF8, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">WEBSITE</span>
+        </h1>
+        <p style="font-size: 20px; color: #94A3B8; line-height: 1.6; margin-bottom: 40px;">
+          A Professional Digital Identity for Showcasing Skills, Projects & Academic Achievements
+        </p>
+
+        <div class="glass-card" style="padding: 24px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Student Name</div>
+            <div style="font-size: 18px; font-weight: 700; color: #F8FAFC;">Anitha Reddy Yerredla</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Degree & Branch</div>
+            <div style="font-size: 18px; font-weight: 700; color: #38BDF8;">B.Tech CSE</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Institution</div>
+            <div style="font-size: 16px; font-weight: 600; color: #CBD5E1;">KL University</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Evaluation</div>
+            <div style="font-size: 16px; font-weight: 600; color: #818CF8;">Project Review / Viva</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="browser-frame">
+          <div class="browser-header">
+            <div class="browser-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="browser-url">https://anithareddy.dev</div>
+          </div>
+          <div class="browser-content" style="height: 480px; overflow: hidden;">
+            <img src="desktop.png" alt="Portfolio Preview">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">01 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-2">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Executive Summary</div>
+      <div class="univ-tag">PROJECT OVERVIEW</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Project <em>Overview</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 40px;">
+        A personal portfolio website is a centralized digital platform to represent a developer's professional identity. It showcases skills, projects, education, certifications, and contact information, providing a professional online presence that can be shared with recruiters, clients, and collaborators.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+        <div class="glass-card">
+          <div class="icon-box">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <h3 style="font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 10px;">Profile</h3>
+          <p style="font-size: 15px; color: #94A3B8; line-height: 1.6;">Professional introduction, career vision, and personal branding tailored for recruiters.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box" style="background: rgba(129, 140, 248, 0.12); border-color: rgba(129, 140, 248, 0.25); color: #818CF8;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+          </div>
+          <h3 style="font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 10px;">Skills</h3>
+          <p style="font-size: 15px; color: #94A3B8; line-height: 1.6;">Technical skills, web engineering proficiency, frameworks, and AI competencies.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.25); color: #F59E0B;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 style="font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 10px;">Projects</h3>
+          <p style="font-size: 15px; color: #94A3B8; line-height: 1.6;">Practical projects, code implementations, and interactive live software demonstrations.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="icon-box" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.25); color: #10B981;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <h3 style="font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 10px;">Contact</h3>
+          <p style="font-size: 15px; color: #94A3B8; line-height: 1.6;">Easy communication channels, messaging form, and direct networking links.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">02 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-3">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> The Challenge</div>
+      <div class="univ-tag">PROBLEM STATEMENT</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Problem <em>Statement</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 30px;">
+        Addressing the critical gaps in traditional resume formats and fragmented information channels.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; margin-bottom: 30px;">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="glass-card" style="padding: 18px 22px; display: flex; align-items: center; gap: 18px;">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #EF4444;">01</div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFF;">Limited Space in Static Resumes</div>
+              <div style="font-size: 13px; color: #94A3B8;">Traditional paper/PDF resumes provide limited space for showcasing technical work.</div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="padding: 18px 22px; display: flex; align-items: center; gap: 18px;">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #EF4444;">02</div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFF;">Inability to Explore Practical Work</div>
+              <div style="font-size: 13px; color: #94A3B8;">Recruiters cannot easily explore projects and practical skills from a static resume.</div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="padding: 18px 22px; display: flex; align-items: center; gap: 18px;">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #EF4444;">03</div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFF;">Lack of Centralized Digital Presence</div>
+              <div style="font-size: 13px; color: #94A3B8;">Students often lack a centralized professional online presence.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="glass-card" style="padding: 18px 22px; display: flex; align-items: center; gap: 18px;">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #EF4444;">04</div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFF;">Information Fragmentation</div>
+              <div style="font-size: 13px; color: #94A3B8;">Project demonstrations, certifications, and achievements are scattered across different platforms.</div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="padding: 18px 22px; display: flex; align-items: center; gap: 18px;">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #EF4444;">05</div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFF;">Need for Single Destination</div>
+              <div style="font-size: 13px; color: #94A3B8;">A professional portfolio can provide a single destination for presenting a student's technical profile.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process Flow Diagram -->
+      <div class="glass-card" style="padding: 22px; background: rgba(15, 23, 42, 0.85); border-color: rgba(56, 189, 248, 0.3);">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #38BDF8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; text-align: center;">
+          Problem Transformation Visual Flow
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="text-align: center; flex: 1;">
+            <div style="font-size: 17px; font-weight: 700; color: #EF4444;">Traditional Resume</div>
+            <div style="font-size: 13px; color: #64748B;">Static & Limited</div>
+          </div>
+          <div style="font-size: 24px; color: #64748B;">➔</div>
+          <div style="text-align: center; flex: 1;">
+            <div style="font-size: 17px; font-weight: 700; color: #F59E0B;">Information Fragmentation</div>
+            <div style="font-size: 13px; color: #64748B;">Scattered Platforms</div>
+          </div>
+          <div style="font-size: 24px; color: #64748B;">➔</div>
+          <div style="text-align: center; flex: 1;">
+            <div style="font-size: 17px; font-weight: 700; color: #818CF8;">Limited Project Visibility</div>
+            <div style="font-size: 13px; color: #64748B;">Unexplored Skills</div>
+          </div>
+          <div style="font-size: 24px; color: #38BDF8;">➔</div>
+          <div style="text-align: center; flex: 1; background: rgba(56, 189, 248, 0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.4);">
+            <div style="font-size: 17px; font-weight: 800; color: #38BDF8;">Need for Digital Portfolio</div>
+            <div style="font-size: 13px; color: #E2E8F0;">Centralized Platform</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">03 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-4">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Core Goals</div>
+      <div class="univ-tag">PROJECT OBJECTIVES</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Project <em>Objectives</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 35px;">
+        Five key objectives driving the design and development of the personal portfolio website.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin-bottom: 35px;">
+        <div class="glass-card" style="padding: 24px 18px;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; color: #38BDF8; margin-bottom: 12px;">01</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">Personal Branding</h3>
+          <p style="font-size: 13px; color: #94A3B8; line-height: 1.5;">Build a professional personal online presence.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 24px 18px;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; color: #818CF8; margin-bottom: 12px;">02</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">Skill Showcase</h3>
+          <p style="font-size: 13px; color: #94A3B8; line-height: 1.5;">Showcase technical skills and projects.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 24px 18px;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; color: #F59E0B; margin-bottom: 12px;">03</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">Credentials</h3>
+          <p style="font-size: 13px; color: #94A3B8; line-height: 1.5;">Present education, certifications, and achievements.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 24px 18px;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; color: #10B981; margin-bottom: 12px;">04</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">Recruiter Access</h3>
+          <p style="font-size: 13px; color: #94A3B8; line-height: 1.5;">Provide recruiters with quick access to relevant information.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 24px 18px;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; color: #EC4899; margin-bottom: 12px;">05</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">Responsive UI</h3>
+          <p style="font-size: 13px; color: #94A3B8; line-height: 1.5;">Create a responsive and user-friendly website.</p>
+        </div>
+      </div>
+
+      <!-- Progression Stepper Bar -->
+      <div class="glass-card" style="padding: 20px 30px; background: rgba(15, 23, 42, 0.9);">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38BDF8; display: flex; align-items: center; justify-content: center; font-weight: 700;">1</div>
+            <span style="font-size: 16px; font-weight: 700; color: #FFF;">Identity</span>
+          </div>
+          <span style="color: #64748B;">➔</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(129,140,248,0.2); color: #818CF8; display: flex; align-items: center; justify-content: center; font-weight: 700;">2</div>
+            <span style="font-size: 16px; font-weight: 700; color: #FFF;">Skills</span>
+          </div>
+          <span style="color: #64748B;">➔</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(245,158,11,0.2); color: #F59E0B; display: flex; align-items: center; justify-content: center; font-weight: 700;">3</div>
+            <span style="font-size: 16px; font-weight: 700; color: #FFF;">Projects</span>
+          </div>
+          <span style="color: #64748B;">➔</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(16,185,129,0.2); color: #10B981; display: flex; align-items: center; justify-content: center; font-weight: 700;">4</div>
+            <span style="font-size: 16px; font-weight: 700; color: #FFF;">Achievements</span>
+          </div>
+          <span style="color: #38BDF8;">➔</span>
+          <div style="display: flex; align-items: center; gap: 12px; background: rgba(56,189,248,0.15); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(56,189,248,0.3);">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #38BDF8; color: #030712; display: flex; align-items: center; justify-content: center; font-weight: 800;">5</div>
+            <span style="font-size: 16px; font-weight: 800; color: #38BDF8;">Opportunities</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">04 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-5">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Architecture & Stack</div>
+      <div class="univ-tag">TECHNOLOGY STACK</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Technology <em>Stack</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 35px;">
+        Layered technology architecture showing tools and frameworks connected across system tiers.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <!-- Frontend Layer -->
+        <div class="glass-card" style="padding: 20px 30px; display: grid; grid-template-columns: 240px 1fr; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; display: flex; align-items: center; justify-content: center; font-weight: 800;">L1</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">Frontend</div>
+              <div style="font-size: 12px; color: #64748B;">Core Web Languages</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;">
+              <span style="color: #E44D26; font-weight: 800; font-size: 18px;">&lt;&gt;</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">HTML</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;">
+              <span style="color: #264DE4; font-weight: 800; font-size: 18px;">#</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">CSS</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;">
+              <span style="color: #F7DF1E; font-weight: 800; font-size: 18px;">{ }</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">JavaScript</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Design / UI Layer -->
+        <div class="glass-card" style="padding: 20px 30px; display: grid; grid-template-columns: 240px 1fr; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(129, 140, 248, 0.15); color: #818CF8; display: flex; align-items: center; justify-content: center; font-weight: 800;">L2</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">Design / UI</div>
+              <div style="font-size: 12px; color: #64748B;">User Experience</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size: 16px; font-weight: 700; color: #FFF;">Responsive Web Design</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size: 16px; font-weight: 700; color: #FFF;">Modern CSS Layouts</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size: 16px; font-weight: 700; color: #FFF;">UI / UX Principles</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Development Tools Layer -->
+        <div class="glass-card" style="padding: 20px 30px; display: grid; grid-template-columns: 240px 1fr; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; display: flex; align-items: center; justify-content: center; font-weight: 800;">L3</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">Development Tools</div>
+              <div style="font-size: 12px; color: #64748B;">IDE & Version Control</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="color: #007ACC; font-weight: 800; font-size: 16px;">VS</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">Visual Studio Code</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="color: #F05032; font-weight: 800; font-size: 16px;">Git</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">Git</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="color: #FFF; font-weight: 800; font-size: 16px;">GH</span> <span style="font-size: 16px; font-weight: 700; color: #FFF;">GitHub</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deployment Layer -->
+        <div class="glass-card" style="padding: 20px 30px; display: grid; grid-template-columns: 240px 1fr; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #10B981; display: flex; align-items: center; justify-content: center; font-weight: 800;">L4</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">Deployment</div>
+              <div style="font-size: 12px; color: #64748B;">Cloud Hosting</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(16, 185, 129, 0.12); padding: 12px 28px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.3);">
+              <span style="font-size: 16px; font-weight: 800; color: #10B981;">GitHub Pages</span> <span style="font-size: 13px; color: #94A3B8;">— Automated Web Hosting & Live Deployment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">05 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-6">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Functional Architecture</div>
+      <div class="univ-tag">KEY FEATURES</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Key <em>Features</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 25px;">
+        Major website sections mapped directly around the central website user interface.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 280px 1fr 280px; gap: 30px; align-items: center;">
+        <!-- Left Callouts -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="glass-card" style="padding: 14px 18px; border-left: 3px solid #38BDF8;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Home / Hero Section</div>
+            <div style="font-size: 12px; color: #94A3B8;">Dynamic introduction & hero CTAs</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-left: 3px solid #818CF8;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">About Me</div>
+            <div style="font-size: 12px; color: #94A3B8;">Personal background & profile card</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-left: 3px solid #F59E0B;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Skills</div>
+            <div style="font-size: 12px; color: #94A3B8;">Technical skill cards & marquee</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-left: 3px solid #10B981;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Projects</div>
+            <div style="font-size: 12px; color: #94A3B8;">Selected engineering project cards</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-left: 3px solid #EC4899;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Education</div>
+            <div style="font-size: 12px; color: #94A3B8;">Academic degree & university record</div>
+          </div>
+        </div>
+
+        <!-- Center Website Frame -->
+        <div>
+          <div class="browser-frame" style="box-shadow: 0 0 50px rgba(56, 189, 248, 0.25);">
+            <div class="browser-header">
+              <div class="browser-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+              </div>
+              <div class="browser-url">https://anithareddy.dev</div>
+            </div>
+            <div class="browser-content" style="height: 420px; overflow: hidden;">
+              <img src="desktop.png" alt="Website Features Preview">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Callouts -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="glass-card" style="padding: 14px 18px; border-right: 3px solid #38BDF8; text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Certifications</div>
+            <div style="font-size: 12px; color: #94A3B8;">Verified technical credentials</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-right: 3px solid #818CF8; text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Achievements</div>
+            <div style="font-size: 12px; color: #94A3B8;">Academic honors & awards</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-right: 3px solid #F59E0B; text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Contact Section</div>
+            <div style="font-size: 12px; color: #94A3B8;">Direct message & contact form</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-right: 3px solid #10B981; text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Responsive Design</div>
+            <div style="font-size: 12px; color: #94A3B8;">Seamless layout cross-device</div>
+          </div>
+          <div class="glass-card" style="padding: 14px 18px; border-right: 3px solid #EC4899; text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #FFF;">Social Links</div>
+            <div style="font-size: 12px; color: #94A3B8;">LinkedIn & professional networking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">06 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-7">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Responsive Interface</div>
+      <div class="univ-tag">UI / UX DESIGN</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">UI / UX <em>Design</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 25px;">
+        Core design principles paired with realistic multi-device portfolio mockups.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 460px 1fr; gap: 40px; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="glass-card" style="padding: 16px 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #38BDF8; margin-bottom: 4px;">• Clean and Minimal Interface</div>
+            <div style="font-size: 13px; color: #94A3B8;">Dark mode visual balance with sleek glassmorphic containers.</div>
+          </div>
+          <div class="glass-card" style="padding: 16px 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #818CF8; margin-bottom: 4px;">• Consistent Typography</div>
+            <div style="font-size: 13px; color: #94A3B8;">Paired modern fonts for headings and readable body text.</div>
+          </div>
+          <div class="glass-card" style="padding: 16px 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #F59E0B; margin-bottom: 4px;">• Clear Navigation & Visual Hierarchy</div>
+            <div style="font-size: 13px; color: #94A3B8;">Sticky navbar and clear section hierarchy for quick scanning.</div>
+          </div>
+          <div class="glass-card" style="padding: 16px 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #10B981; margin-bottom: 4px;">• Responsive Layout & Mobile-Friendly</div>
+            <div style="font-size: 13px; color: #94A3B8;">Adapts gracefully across desktop, tablet, and mobile viewports.</div>
+          </div>
+          <div class="glass-card" style="padding: 16px 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #EC4899; margin-bottom: 4px;">• Professional Color & Spacing System</div>
+            <div style="font-size: 13px; color: #94A3B8;">Consistent padding, margins, and dark mode palette.</div>
+          </div>
+        </div>
+
+        <!-- 3 Realistic Device Screens -->
+        <div style="display: flex; gap: 20px; align-items: flex-end; justify-content: center;">
+          <!-- Desktop -->
+          <div style="width: 580px;">
+            <div style="font-size: 13px; font-weight: 700; color: #38BDF8; text-align: center; margin-bottom: 8px;">DESKTOP VIEW</div>
+            <div class="browser-frame">
+              <div class="browser-header" style="padding: 8px 12px;">
+                <div class="browser-dots"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+                <div class="browser-url" style="font-size: 11px;">Desktop View</div>
+              </div>
+              <div class="browser-content" style="height: 330px; overflow: hidden;">
+                <img src="desktop.png" alt="Desktop View">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tablet -->
+          <div style="width: 310px;">
+            <div style="font-size: 13px; font-weight: 700; color: #818CF8; text-align: center; margin-bottom: 8px;">TABLET VIEW</div>
+            <div class="tablet-frame">
+              <div style="height: 320px; overflow: hidden;">
+                <img src="tablet.png" style="width: 100%; display: block;" alt="Tablet View">
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile -->
+          <div style="width: 170px;">
+            <div style="font-size: 13px; font-weight: 700; color: #F59E0B; text-align: center; margin-bottom: 8px;">MOBILE VIEW</div>
+            <div class="mobile-frame">
+              <div style="height: 310px; overflow: hidden;">
+                <img src="mobile.png" style="width: 100%; display: block;" alt="Mobile View">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">07 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-8">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Engineering Process</div>
+      <div class="univ-tag">DEVELOPMENT WORKFLOW</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Development <em>Workflow</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 30px;">
+        The website was developed iteratively and tested extensively across different screen sizes.
+      </p>
+
+      <!-- Pipeline Steps -->
+      <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 35px;">
+        <div class="glass-card" style="padding: 20px 14px; text-align: center;">
+          <div style="font-size: 18px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">Planning</div>
+          <div style="font-size: 24px; color: #38BDF8; margin-bottom: 8px;">↓</div>
+          <div style="font-size: 12px; color: #94A3B8;">Requirements & sitemap definition</div>
+        </div>
+
+        <div class="glass-card" style="padding: 20px 14px; text-align: center;">
+          <div style="font-size: 18px; font-weight: 800; color: #818CF8; margin-bottom: 8px;">UI Design</div>
+          <div style="font-size: 24px; color: #818CF8; margin-bottom: 8px;">↓</div>
+          <div style="font-size: 12px; color: #94A3B8;">Visual system & layout wireframes</div>
+        </div>
+
+        <div class="glass-card" style="padding: 20px 14px; text-align: center;">
+          <div style="font-size: 18px; font-weight: 800; color: #F59E0B; margin-bottom: 8px;">Frontend Dev</div>
+          <div style="font-size: 24px; color: #F59E0B; margin-bottom: 8px;">↓</div>
+          <div style="font-size: 12px; color: #94A3B8;">HTML structure, CSS grid & JS logic</div>
+        </div>
+
+        <div class="glass-card" style="padding: 20px 14px; text-align: center;">
+          <div style="font-size: 18px; font-weight: 800; color: #10B981; margin-bottom: 8px;">Content Integration</div>
+          <div style="font-size: 24px; color: #10B981; margin-bottom: 8px;">↓</div>
+          <div style="font-size: 12px; color: #94A3B8;">Skills, projects & media assets</div>
+        </div>
+
+        <div class="glass-card" style="padding: 20px 14px; text-align: center;">
+          <div style="font-size: 18px; font-weight: 800; color: #EC4899; margin-bottom: 8px;">Testing</div>
+          <div style="font-size: 24px; color: #EC4899; margin-bottom: 8px;">↓</div>
+          <div style="font-size: 12px; color: #94A3B8;">Cross-screen & browser validation</div>
+        </div>
+
+        <div class="glass-card" style="padding: 20px 14px; text-align: center; border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.12);">
+          <div style="font-size: 18px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">GitHub Deployment</div>
+          <div style="font-size: 24px; color: #38BDF8; margin-bottom: 8px;">✓</div>
+          <div style="font-size: 12px; color: #E2E8F0;">Live hosting on GitHub Pages</div>
+        </div>
+      </div>
+
+      <!-- Git -> GitHub -> Deployment Visual -->
+      <div class="glass-card" style="padding: 28px 40px; background: rgba(15, 23, 42, 0.9);">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #38BDF8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 18px; text-align: center;">
+          Version Control to Deployment Flow
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-around;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(240, 80, 50, 0.15); border: 1px solid rgba(240, 80, 50, 0.3); color: #F05032; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;">Git</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">Git Local</div>
+              <div style="font-size: 13px; color: #94A3B8;">Version Control & Local Commits</div>
+            </div>
+          </div>
+
+          <div style="font-size: 28px; color: #64748B;">➔</div>
+
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;">GH</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFF;">GitHub Remote</div>
+              <div style="font-size: 13px; color: #94A3B8;">Cloud Repository & Code Sync</div>
+            </div>
+          </div>
+
+          <div style="font-size: 28px; color: #38BDF8;">➔</div>
+
+          <div style="display: flex; align-items: center; gap: 16px; background: rgba(16, 185, 129, 0.12); padding: 14px 28px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="width: 54px; height: 54px; border-radius: 14px; background: #10B981; color: #030712; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;">Live</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 800; color: #10B981;">GitHub Pages</div>
+              <div style="font-size: 13px; color: #E2E8F0;">Automated Production Web Hosting</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">08 / 10</div>
+    </div>
+  </div>
+<div class="slide" id="slide-9">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Deliverables & Roadmap</div>
+      <div class="univ-tag">OUTCOME & FUTURE SCOPE</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Project Outcome & <em>Future Scope</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 25px;">
+        Comparing current project deliverables with future enhancement roadmap.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 25px;">
+        <!-- Current Outcome -->
+        <div class="glass-card" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(15, 23, 42, 0.75);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #10B981; box-shadow: 0 0 10px #10B981;"></div>
+            <h3 style="font-size: 22px; font-weight: 700; color: #10B981;">Current Outcome</h3>
+          </div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; color: #E2E8F0;">
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Functional personal portfolio website</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Professional presentation of skills and projects</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Responsive user interface across screen sizes</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Centralized academic and professional information</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Easy sharing with recruiters and clients</li>
+          </ul>
+        </div>
+
+        <!-- Future Enhancements -->
+        <div class="glass-card" style="border-color: rgba(129, 140, 248, 0.3); background: rgba(15, 23, 42, 0.75);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 10px #818CF8;"></div>
+            <h3 style="font-size: 22px; font-weight: 700; color: #818CF8;">Future Enhancements</h3>
+          </div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #E2E8F0;">
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Admin dashboard for content management</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Backend / database integration</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Dynamic project management</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Contact form with email integration</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Technical blog section &amp; Analytics</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Dark/light theme &amp; Advanced animations</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Current -> Future Visual Progression -->
+      <div class="glass-card" style="padding: 16px 30px; text-align: center; background: rgba(15, 23, 42, 0.9);">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 30px;">
+          <div style="font-weight: 700; color: #10B981; font-size: 16px;">Current Portfolio Website MVP</div>
+          <div style="font-size: 22px; color: #38BDF8;">➔ ➔ ➔</div>
+          <div style="font-weight: 700; color: #818CF8; font-size: 16px;">Dynamic Full-Stack Web Platform (Future)</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">09 / 10</div>
+    </div>
+  </div>
+  </div>
+
+  <!-- On-Screen Navigation -->
+  <div id="nav-bar">
+    <button class="nav-btn" id="prev-btn" title="Previous Slide (Left Arrow)">◀</button>
+    <div class="slide-num" id="slide-indicator">01 / 10</div>
+    <button class="nav-btn" id="next-btn" title="Next Slide (Right Arrow or Space)">▶</button>
+  </div>
+
+  <div id="progress-bar" style="width: 10%;"></div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+
+    function updateScale() {
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      const scale = Math.min(scaleX, scaleY);
+      document.documentElement.style.setProperty('--slide-scale', scale);
+    }
+
+    window.addEventListener('resize', updateScale);
+    updateScale();
+
+    function goToSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+      
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      
+      currentSlide = n;
+      const target = document.getElementById('slide-' + currentSlide);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      document.getElementById('slide-indicator').textContent = 
+        (currentSlide < 10 ? '0' + currentSlide : currentSlide) + ' / ' + totalSlides;
+        
+      document.getElementById('progress-bar').style.width = (currentSlide / totalSlides * 100) + '%';
+    }
+
+    document.getElementById('prev-btn').addEventListener('click', () => goToSlide(currentSlide - 1));
+    document.getElementById('next-btn').addEventListener('click', () => goToSlide(currentSlide + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        goToSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        goToSlide(currentSlide - 1);
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

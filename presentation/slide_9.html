@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background-color: #030712;
+      color: #F8FAFC;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+                  radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 45%),
+                  linear-gradient(135deg, #060C17 0%, #030712 100%);
+      padding: 70px 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 30px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38BDF8;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38BDF8;
+      box-shadow: 0 0 10px #38BDF8;
+    }
+    .univ-tag {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #94A3B8;
+      letter-spacing: 1px;
+    }
+
+    .slide-body {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 25px 0;
+    }
+
+    .slide-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 50px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .slide-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-subtitle {
+      font-size: 20px;
+      color: #94A3B8;
+      max-width: 950px;
+      line-height: 1.6;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 20px;
+      font-size: 14px;
+      color: #64748B;
+    }
+    .footer-left {
+      font-weight: 600;
+      color: #94A3B8;
+    }
+    .footer-right {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: #38BDF8;
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
+    }
+
+    .browser-frame {
+      background: #0B132B;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.15);
+    }
+    .browser-header {
+      background: #0F172A;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .browser-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #F59E0B; }
+    .dot-green { background: #10B981; }
+    .browser-url {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 4px 16px;
+      font-size: 13px;
+      color: #94A3B8;
+      flex: 1;
+      font-family: monospace;
+      text-align: center;
+    }
+    .browser-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .tablet-frame {
+      border: 8px solid #1E293B;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      background: #000;
+    }
+    .mobile-frame {
+      border: 8px solid #1E293B;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      background: #000;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38BDF8;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide">
+    <div class="slide-header">
+      <div class="badge"><span class="badge-dot"></span> Deliverables & Roadmap</div>
+      <div class="univ-tag">OUTCOME & FUTURE SCOPE</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Project Outcome & <em>Future Scope</em></h2>
+      <p class="slide-subtitle" style="margin-bottom: 25px;">
+        Comparing current project deliverables with future enhancement roadmap.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 25px;">
+        <!-- Current Outcome -->
+        <div class="glass-card" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(15, 23, 42, 0.75);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #10B981; box-shadow: 0 0 10px #10B981;"></div>
+            <h3 style="font-size: 22px; font-weight: 700; color: #10B981;">Current Outcome</h3>
+          </div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; color: #E2E8F0;">
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Functional personal portfolio website</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Professional presentation of skills and projects</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Responsive user interface across screen sizes</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Centralized academic and professional information</li>
+            <li style="display: flex; align-items: center; gap: 10px;"><span style="color: #10B981; font-weight: 800;">✓</span> Easy sharing with recruiters and clients</li>
+          </ul>
+        </div>
+
+        <!-- Future Enhancements -->
+        <div class="glass-card" style="border-color: rgba(129, 140, 248, 0.3); background: rgba(15, 23, 42, 0.75);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 10px #818CF8;"></div>
+            <h3 style="font-size: 22px; font-weight: 700; color: #818CF8;">Future Enhancements</h3>
+          </div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #E2E8F0;">
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Admin dashboard for content management</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Backend / database integration</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Dynamic project management</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Contact form with email integration</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Technical blog section &amp; Analytics</li>
+            <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #818CF8; font-weight: 800;">➔</span> Dark/light theme &amp; Advanced animations</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Current -> Future Visual Progression -->
+      <div class="glass-card" style="padding: 16px 30px; text-align: center; background: rgba(15, 23, 42, 0.9);">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 30px;">
+          <div style="font-weight: 700; color: #10B981; font-size: 16px;">Current Portfolio Website MVP</div>
+          <div style="font-size: 22px; color: #38BDF8;">➔ ➔ ➔</div>
+          <div style="font-weight: 700; color: #818CF8; font-size: 16px;">Dynamic Full-Stack Web Platform (Future)</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="footer-left">Personal Portfolio Website — B.Tech CSE Project</div>
+      <div class="footer-right">09 / 10</div>
+    </div>
+  </div>
+
+</body>
+</html>

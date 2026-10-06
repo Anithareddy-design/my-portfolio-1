@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR. Admin Panel</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+  <!-- BACKGROUND -->
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="grid-bg"></div>
+
+  <!-- ================= LOGIN ================= -->
+  <div class="login-page" id="loginPage">
+
+    <div class="login-card">
+
+      <div class="logo">AR.</div>
+
+      <span class="admin-badge">ADMIN ACCESS</span>
+
+      <h1>Welcome Back</h1>
+      <p>Manage your portfolio from one place.</p>
+
+      <form id="loginForm">
+
+        <div class="input-box">
+          <span>👤</span>
+          <input type="text" id="username" placeholder="Username" required>
+        </div>
+
+        <div class="input-box">
+          <span>🔐</span>
+          <input type="password" id="password" placeholder="Password" required>
+        </div>
+
+        <button type="submit" class="login-btn">
+          Enter Dashboard →
+        </button>
+
+        <div id="loginError"></div>
+
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- ================= DASHBOARD ================= -->
+  <div class="dashboard" id="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="side-logo">AR.</div>
+
+      <div class="admin-profile">
+        <div class="profile-circle">AR</div>
+
+        <div>
+          <strong>Anita Reddy</strong>
+          <small>Administrator</small>
+        </div>
+      </div>
+
+      <nav>
+
+        <button class="nav-item active" data-section="dashboardSection">
+          <span>▣</span>
+          Dashboard
+        </button>
+
+        <button class="nav-item" data-section="projectsSection">
+          <span>◆</span>
+          Projects
+        </button>
+
+        <button class="nav-item" data-section="skillsSection">
+          <span>✦</span>
+          Skills
+        </button>
+
+        <button class="nav-item" data-section="resumeSection">
+          <span>▤</span>
+          Resume
+        </button>
+
+        <button class="nav-item" data-section="contactSection">
+          <span>◎</span>
+          Contact
+        </button>
+
+        <button class="nav-item" data-section="jarvisSection">
+          <span>⚡</span>
+          JARVIS
+        </button>
+
+        <button class="nav-item" data-section="messagesSection">
+          <span>✉</span>
+          Messages
+        </button>
+
+        <button class="nav-item" data-section="settingsSection">
+          <span>⚙</span>
+          Site Settings
+        </button>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <a
+          href="https://anithareddy-design.github.io/my-updated-portfolio/"
+          target="_blank"
+          class="view-site"
+        >
+          🌐 View Portfolio
+        </a>
+
+        <button class="logout" onclick="logout()">
+          ↪ Logout
+        </button>
+
+      </div>
+
+    </aside>
+
+
+    <!-- ================= MAIN ================= -->
+    <main class="main">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+
+        <div>
+          <span class="small-label">ADMIN PANEL</span>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+
+        <div class="top-actions">
+
+          <div class="system-status">
+            <span class="status-dot"></span>
+            System Online
+          </div>
+
+          <div class="admin-mini">
+            <div class="mini-avatar">AR</div>
+            <span>Anita</span>
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- ================= DASHBOARD OVERVIEW ================= -->
+      <section class="page-section active" id="dashboardSection">
+
+        <div class="welcome-box">
+
+          <div>
+            <span class="small-label">PORTFOLIO CONTROL CENTER</span>
+
+            <h2>Welcome, Anita 👋</h2>
+
+            <p>
+              Manage your projects, skills, resume, contact information
+              and JARVIS assistant from one place.
+            </p>
+          </div>
+
+          <div class="welcome-icon">
+            AR.
+          </div>
+
+        </div>
+
+
+        <!-- STAT CARDS -->
+        <div class="stats">
+
+          <div class="stat-card">
+            <div class="stat-icon">◆</div>
+            <div>
+              <span>Total Projects</span>
+              <h2 id="projectCount">0</h2>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">✦</div>
+            <div>
+              <span>Total Skills</span>
+              <h2 id="skillCount">0</h2>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div>
+              <span>JARVIS</span>
+              <h2 id="jarvisStatus">ON</h2>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">●</div>
+            <div>
+              <span>Portfolio</span>
+              <h2>Active</h2>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-heading">
+          <div>
+            <span class="small-label">QUICK ACTIONS</span>
+            <h2>Manage Portfolio</h2>
+          </div>
+        </div>
+
+        <div class="quick-grid">
+
+          <button class="quick-card" onclick="openProjectModal()">
+            <span>◆</span>
+            <strong>Add Project</strong>
+            <small>Create a new portfolio project</small>
+          </button>
+
+          <button class="quick-card" onclick="openSkillModal()">
+            <span>✦</span>
+            <strong>Add Skill</strong>
+            <small>Add a technical or creative skill</small>
+          </button>
+
+          <button class="quick-card" onclick="showSection('contactSection')">
+            <span>◎</span>
+            <strong>Edit Contact</strong>
+            <small>Update your contact information</small>
+          </button>
+
+          <button class="quick-card" onclick="showSection('jarvisSection')">
+            <span>⚡</span>
+            <strong>Configure JARVIS</strong>
+            <small>Manage assistant settings</small>
+          </button>
+
+        </div>
+
+
+        <!-- ACTIVITY -->
+        <div class="section-heading activity-heading">
+          <div>
+            <span class="small-label">RECENT ACTIVITY</span>
+            <h2>Activity Log</h2>
+          </div>
+        </div>
+
+        <div class="activity-list" id="activityList"></div>
+
+      </section>
+
+
+      <!-- ================= PROJECTS ================= -->
+      <section class="page-section" id="projectsSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">CONTENT MANAGEMENT</span>
+            <h2>Manage Projects</h2>
+          </div>
+
+          <button class="add-btn" onclick="openProjectModal()">
+            + Add Project
+          </button>
+
+        </div>
+
+        <div class="project-list" id="projectList"></div>
+
+      </section>
+
+
+      <!-- ================= SKILLS ================= -->
+      <section class="page-section" id="skillsSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">SKILL MANAGEMENT</span>
+            <h2>Manage Skills</h2>
+          </div>
+
+          <button class="add-btn" onclick="openSkillModal()">
+            + Add Skill
+          </button>
+
+        </div>
+
+        <div class="skills-grid" id="skillsList"></div>
+
+      </section>
+
+
+      <!-- ================= RESUME ================= -->
+      <section class="page-section" id="resumeSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">DOCUMENT MANAGEMENT</span>
+            <h2>Resume</h2>
+          </div>
+
+        </div>
+
+        <div class="settings-card">
+
+          <div class="card-header">
+            <div>
+              <span class="small-label">CURRENT RESUME</span>
+              <h3>Resume Information</h3>
+            </div>
+
+            <div class="resume-status">
+              ● Available
+            </div>
+          </div>
+
+          <form id="resumeForm">
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label>Resume Title</label>
+                <input
+                  type="text"
+                  id="resumeTitle"
+                  placeholder="Anita Reddy Resume"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Resume File / URL</label>
+                <input
+                  type="text"
+                  id="resumeUrl"
+                  placeholder="Updated_Resume.pdf"
+                >
+              </div>
+
+            </div>
+
+            <div class="form-actions">
+
+              <button type="submit" class="save-btn">
+                Save Resume →
+              </button>
+
+              <a
+                href="#"
+                id="resumePreview"
+                target="_blank"
+                class="secondary-btn"
+              >
+                Preview Resume
+              </a>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= CONTACT ================= -->
+      <section class="page-section" id="contactSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">PERSONAL INFORMATION</span>
+            <h2>Edit Contact</h2>
+          </div>
+
+        </div>
+
+        <div class="settings-card">
+
+          <form id="contactForm">
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="contactEmail">
+              </div>
+
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="contactPhone">
+              </div>
+
+              <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="contactLocation">
+              </div>
+
+              <div class="form-group">
+                <label>LinkedIn</label>
+                <input type="url" id="contactLinkedin">
+              </div>
+
+              <div class="form-group">
+                <label>GitHub</label>
+                <input type="url" id="contactGithub">
+              </div>
+
+              <div class="form-group">
+                <label>Instagram</label>
+                <input type="url" id="contactInstagram">
+              </div>
+
+            </div>
+
+            <div class="form-group full-width">
+
+              <label>Availability</label>
+
+              <select id="contactAvailability">
+
+                <option value="Available for internships">
+                  Available for internships
+                </option>
+
+                <option value="Open to opportunities">
+                  Open to opportunities
+                </option>
+
+                <option value="Currently unavailable">
+                  Currently unavailable
+                </option>
+
+              </select>
+
+            </div>
+
+            <div class="form-actions">
+
+              <button type="submit" class="save-btn">
+                Save Contact →
+              </button>
+
+              <button
+                type="button"
+                class="danger-btn"
+                onclick="clearContact()"
+              >
+                Clear Contact
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= JARVIS ================= -->
+      <section class="page-section" id="jarvisSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">AI ASSISTANT CONTROL</span>
+            <h2>JARVIS Configuration</h2>
+          </div>
+
+          <div class="jarvis-live">
+            <span class="status-dot"></span>
+            <span id="jarvisLiveText">ONLINE</span>
+          </div>
+
+        </div>
+
+        <div class="jarvis-card">
+
+          <div class="jarvis-header">
+
+            <div class="jarvis-logo">
+              J
+            </div>
+
+            <div>
+              <span class="small-label">PERSONAL AI ASSISTANT</span>
+              <h2>JARVIS</h2>
+              <p>Local AI assistant configuration</p>
+            </div>
+
+          </div>
+
+
+          <form id="jarvisForm">
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label>Assistant Name</label>
+                <input type="text" id="jarvisName">
+              </div>
+
+              <div class="form-group">
+                <label>Response Language</label>
+
+                <select id="jarvisLanguage">
+                  <option>English</option>
+                  <option>Telugu</option>
+                  <option>English + Telugu</option>
+                </select>
+
+              </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Wake Phrases</label>
+
+              <input
+                type="text"
+                id="jarvisWake"
+                placeholder="Jarvis wakeup, hey Jarvis"
+              >
+
+              <small class="field-note">
+                Separate multiple wake phrases with commas.
+              </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Greeting</label>
+
+              <textarea
+                id="jarvisGreeting"
+                placeholder="Good morning, Ma'am. How can I help you?"
+              ></textarea>
+
+            </div>
+
+
+            <div class="toggle-grid">
+
+              <label class="toggle-item">
+                <span>
+                  <strong>JARVIS Enabled</strong>
+                  <small>Enable assistant</small>
+                </span>
+
+                <input type="checkbox" id="jarvisEnabled">
+                <span class="toggle"></span>
+              </label>
+
+
+              <label class="toggle-item">
+                <span>
+                  <strong>Voice Commands</strong>
+                  <small>Enable voice interaction</small>
+                </span>
+
+                <input type="checkbox" id="jarvisVoice">
+                <span class="toggle"></span>
+              </label>
+
+
+              <label class="toggle-item">
+                <span>
+                  <strong>Portfolio Navigation</strong>
+                  <small>Navigate portfolio by voice</small>
+                </span>
+
+                <input type="checkbox" id="jarvisNavigation">
+                <span class="toggle"></span>
+              </label>
+
+
+              <label class="toggle-item">
+                <span>
+                  <strong>Jokes & Personality</strong>
+                  <small>Allow casual responses</small>
+                </span>
+
+                <input type="checkbox" id="jarvisJokes">
+                <span class="toggle"></span>
+              </label>
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button type="submit" class="save-btn">
+                Save JARVIS Settings →
+              </button>
+
+              <button
+                type="button"
+                class="secondary-btn"
+                onclick="testJarvis()"
+              >
+                ⚡ Test JARVIS
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= MESSAGES ================= -->
+      <section class="page-section" id="messagesSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">CONTACT FORM</span>
+            <h2>Messages</h2>
+          </div>
+
+        </div>
+
+        <div class="messages-list" id="messagesList"></div>
+
+      </section>
+
+
+      <!-- ================= SETTINGS ================= -->
+      <section class="page-section" id="settingsSection">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="small-label">PORTFOLIO CONFIGURATION</span>
+            <h2>Site Settings</h2>
+          </div>
+
+        </div>
+
+
+        <div class="settings-card">
+
+          <form id="settingsForm">
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label>Portfolio Title</label>
+                <input type="text" id="siteTitle">
+              </div>
+
+              <div class="form-group">
+                <label>Tagline</label>
+                <input type="text" id="siteTagline">
+              </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Announcement</label>
+
+              <textarea
+                id="siteAnnouncement"
+                placeholder="Currently open for internships..."
+              ></textarea>
+
+            </div>
+
+
+            <div class="toggle-grid">
+
+              <label class="toggle-item">
+
+                <span>
+                  <strong>Show Projects</strong>
+                  <small>Display projects on portfolio</small>
+                </span>
+
+                <input type="checkbox" id="showProjects">
+                <span class="toggle"></span>
+
+              </label>
+
+
+              <label class="toggle-item">
+
+                <span>
+                  <strong>Show Skills</strong>
+                  <small>Display skills section</small>
+                </span>
+
+                <input type="checkbox" id="showSkills">
+                <span class="toggle"></span>
+
+              </label>
+
+
+              <label class="toggle-item">
+
+                <span>
+                  <strong>Show JARVIS</strong>
+                  <small>Display JARVIS section</small>
+                </span>
+
+                <input type="checkbox" id="showJarvis">
+                <span class="toggle"></span>
+
+              </label>
+
+
+              <label class="toggle-item danger-toggle">
+
+                <span>
+                  <strong>Maintenance Mode</strong>
+                  <small>Temporarily disable portfolio</small>
+                </span>
+
+                <input type="checkbox" id="maintenanceMode">
+                <span class="toggle"></span>
+
+              </label>
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button type="submit" class="save-btn">
+                Save Site Settings →
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+
+        <!-- BACKUP -->
+        <div class="settings-card backup-card">
+
+          <div class="card-header">
+
+            <div>
+              <span class="small-label">DATA MANAGEMENT</span>
+              <h3>Backup & Restore</h3>
+            </div>
+
+          </div>
+
+          <p>
+            Export your admin data as JSON or restore it later.
+          </p>
+
+          <div class="backup-actions">
+
+            <button
+              class="secondary-btn"
+              onclick="exportData()"
+            >
+              ↓ Export Data
+            </button>
+
+            <label class="secondary-btn file-label">
+              ↑ Import Data
+              <input
+                type="file"
+                id="importFile"
+                accept=".json"
+                hidden
+              >
+            </label>
+
+            <button
+              class="danger-btn"
+              onclick="resetData()"
+            >
+              Reset Demo Data
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- ================= PROJECT MODAL ================= -->
+  <div class="modal" id="projectModal">
+
+    <div class="modal-card">
+
+      <button class="close-btn" onclick="closeProjectModal()">×</button>
+
+      <span class="small-label">PROJECT MANAGER</span>
+
+      <h2 id="projectModalTitle">
+        Add New Project
+      </h2>
+
+      <form id="projectForm">
+
+        <input type="hidden" id="editProjectId">
+
+        <div class="form-group">
+          <label>Project Name</label>
+
+          <input
+            type="text"
+            id="projectName"
+            placeholder="e.g. Aureva Brand Portfolio"
+            required
+          >
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Category</label>
+
+          <input
+            type="text"
+            id="projectCategory"
+            placeholder="Web Development"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Description</label>
+
+          <textarea
+            id="projectDescription"
+            placeholder="Describe your project..."
+            required
+          ></textarea>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>Project Link</label>
+
+            <input
+              type="url"
+              id="projectLink"
+              placeholder="https://example.com"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label>GitHub Link</label>
+
+            <input
+              type="url"
+              id="projectGithub"
+              placeholder="https://github.com/..."
+            >
+
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Technologies</label>
+
+          <input
+            type="text"
+            id="projectTech"
+            placeholder="HTML, CSS, JavaScript"
+          >
+
+        </div>
+
+
+        <label class="featured-check">
+
+          <input type="checkbox" id="projectFeatured">
+
+          <span>
+            Featured Project
+          </span>
+
+        </label>
+
+
+        <button class="save-btn" type="submit">
+          Save Project →
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= SKILL MODAL ================= -->
+  <div class="modal" id="skillModal">
+
+    <div class="modal-card">
+
+      <button class="close-btn" onclick="closeSkillModal()">×</button>
+
+      <span class="small-label">SKILL MANAGER</span>
+
+      <h2 id="skillModalTitle">
+        Add New Skill
+      </h2>
+
+      <form id="skillForm">
+
+        <input type="hidden" id="editSkillId">
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>Skill Name</label>
+
+            <input
+              type="text"
+              id="skillName"
+              placeholder="Python"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Category</label>
+
+            <select id="skillCategory">
+
+              <option>Programming</option>
+              <option>Web Development</option>
+              <option>AI & Tools</option>
+              <option>Design</option>
+              <option>Other</option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Skill Level: <span id="skillLevelValue">80</span>%</label>
+
+          <input
+            type="range"
+            id="skillLevel"
+            min="1"
+            max="100"
+            value="80"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Icon / Emoji</label>
+
+          <input
+            type="text"
+            id="skillIcon"
+            placeholder="🐍"
+          >
+
+        </div>
+
+
+        <button class="save-btn" type="submit">
+          Save Skill →
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
