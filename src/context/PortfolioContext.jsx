@@ -53,22 +53,13 @@ export function PortfolioProvider({ children }) {
     }
   }, []);
 
-  // Save to localStorage whenever data changes (guarded for admin only)
-  const persistData = useCallback((newData) => {
-    if (activeRole !== 'admin') {
-      showToast('🔒 Edit Access Denied: Administrator role required.', 'error');
-      return false;
-    }
-    setData(newData);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
-      // Dispatch storage event manually for same-window reactivity if needed
-      window.dispatchEvent(new Event('portfolio:updated'));
-    } catch (err) {
-      console.error('Failed to save to localStorage:', err);
-    }
-    return true;
-  }, [activeRole, showToast]);
+  // Toast helper (defined early so other callbacks can reference it)
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, visible: false }));
+    }, 3200);
+  }, []);
 
   // Sync across tabs via window 'storage' listener
   useEffect(() => {
@@ -83,14 +74,6 @@ export function PortfolioProvider({ children }) {
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Toast helper
-  const showToast = useCallback((message, type = 'info') => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, visible: false }));
-    }, 3200);
   }, []);
 
   // Activity logger helper

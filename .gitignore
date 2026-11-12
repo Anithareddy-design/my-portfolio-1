@@ -3,3 +3,4 @@ dist/
 .env
 .env.*
 !.env.example
+# Note: .vercel/project.json is tracked so Vercel keeps the project link

@@ -56,7 +56,8 @@ export default function App() {
 
       {/* Global Interactive Overlays */}
       <JarvisOverlay />
-      <RoleSwitcher />
+      {/* Dev toolbar — hidden in production builds */}
+      {import.meta.env.DEV && <RoleSwitcher />}
       <Toast />
     </div>
   );
