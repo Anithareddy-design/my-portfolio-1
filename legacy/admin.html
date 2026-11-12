@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Anita Reddy — Control Center Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-deep: #020408;
+      --bg-mid: #060c14;
+      --bg-card: rgba(10, 18, 35, 0.78);
+      --gold: #c9a84c;
+      --gold-light: #e6c97a;
+      --gold-pale: rgba(201, 168, 76, 0.12);
+      --violet: #7c5cbf;
+      --violet-light: #a07de0;
+      --violet-pale: rgba(124, 92, 191, 0.15);
+      --blue: #1a8fff;
+      --blue-electric: #00eeff;
+      --blue-pale: rgba(26, 143, 255, 0.12);
+      --text-primary: #f0ede8;
+      --text-secondary: #9ea8bc;
+      --text-muted: #5a6478;
+      --border: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --danger: #ff5f56;
+      --success: #27c93f;
+      --serif: 'Cormorant Garamond', serif;
+      --sans: 'Space Grotesk', sans-serif;
+      --body: 'Inter', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: var(--body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(124, 92, 191, .08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 20% 80%, rgba(26, 143, 255, .06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(201, 168, 76, .04) 0%, transparent 70%);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* Noise Texture Overlay */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.5;
+    }
+
+    .admin-wrapper { display: flex; min-height: 100vh; }
+
+    /* ── LOGIN / ROLE ACCESS GATE ── */
+    #loginGate {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(2, 4, 8, 0.95);
+      backdrop-filter: blur(24px);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .login-card {
+      width: min(450px, 100%);
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px; padding: 2.8rem 2.2rem;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.18);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .login-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--violet), var(--blue));
+    }
+    .brand-logo {
+      font-family: var(--serif); font-size: 2.4rem; font-weight: 600; color: var(--gold);
+      letter-spacing: .05em; margin-bottom: .2rem;
+    }
+    .brand-subtitle {
+      font-family: var(--sans); font-size: .75rem; font-weight: 700; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.8rem;
+    }
+
+    /* Role Selection Segmented Control */
+    .role-selector-group {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem;
+      background: rgba(255,255,255,0.03); padding: 4px; border-radius: 12px;
+      border: 1px solid var(--border); margin-bottom: 1.5rem;
+    }
+    .role-btn {
+      padding: .6rem .4rem; border-radius: 8px; border: none; background: transparent;
+      color: var(--text-secondary); font-family: var(--sans); font-size: .78rem; font-weight: 600;
+      cursor: pointer; transition: all .3s; text-transform: uppercase; letter-spacing: .05em;
+    }
+    .role-btn:hover { color: var(--gold); }
+    .role-btn.active {
+      background: var(--gold-pale); color: var(--gold); border: 1px solid rgba(201,168,76,0.3);
+      box-shadow: 0 4px 12px rgba(201,168,76,0.15);
+    }
+
+    /* Form Controls */
+    .form-group { margin-bottom: 1.2rem; text-align: left; }
+    .form-label {
+      display: block; font-family: var(--sans); font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: .4rem;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 10px; padding: .85rem 1rem; font-family: var(--body); font-size: .9rem;
+      color: var(--text-primary); transition: all .3s; outline: none;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--gold); background: rgba(201,168,76,0.05);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .form-textarea { min-height: 90px; resize: vertical; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      font-family: var(--sans); font-size: .82rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .85rem 1.4rem; border-radius: 10px; border: none;
+      cursor: pointer; transition: all .3s; text-decoration: none;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      color: var(--bg-deep);
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.35); }
+    .btn-outline {
+      background: transparent; border: 1px solid var(--glass-border); color: var(--text-primary);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
+    .btn-danger { background: rgba(255,95,86,0.15); border: 1px solid rgba(255,95,86,0.3); color: var(--danger); }
+    .btn-danger:hover { background: rgba(255,95,86,0.3); }
+    .btn-block { width: 100%; }
+
+    /* ── SIDEBAR NAV ── */
+    .sidebar {
+      width: 270px; background: rgba(4, 8, 16, 0.95); border-right: 1px solid var(--border);
+      padding: 2rem 1.2rem; display: flex; flex-direction: column; justify-content: space-between;
+      backdrop-filter: blur(20px); position: sticky; top: 0; height: 100vh;
+    }
+    .sidebar-header { margin-bottom: 2rem; text-align: center; }
+    .sidebar-user {
+      display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; background: var(--glass);
+      border: 1px solid var(--border); border-radius: 14px; margin-top: 1rem; text-align: left;
+    }
+    .user-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--violet));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-weight: 700; color: var(--bg-deep); font-size: 1.1rem;
+    }
+    .user-info h4 { font-size: .88rem; font-weight: 600; color: var(--text-primary); }
+    .user-info p { font-size: .7rem; color: var(--gold); font-family: var(--sans); font-weight: 600; }
+
+    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+    .nav-item button {
+      width: 100%; display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem;
+      border-radius: 10px; background: transparent; border: 1px solid transparent;
+      color: var(--text-secondary); font-family: var(--sans); font-size: .82rem; font-weight: 500;
+      cursor: pointer; transition: all .3s; text-align: left;
+    }
+    .nav-item button:hover { color: var(--gold); background: var(--gold-pale); }
+    .nav-item button.active {
+      color: var(--gold); background: var(--gold-pale); border-color: rgba(201,168,76,0.25);
+      box-shadow: 0 4px 16px rgba(201,168,76,0.1); font-weight: 600;
+    }
+    .nav-item button .nav-icon { font-size: 1.1rem; width: 22px; }
+
+    /* ── MAIN CONTENT AREA ── */
+    .main-content { flex: 1; padding: 2.5rem 3rem; overflow-y: auto; }
+    
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      margin-bottom: 2.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border);
+    }
+    .page-title { font-family: var(--serif); font-size: 2.2rem; font-weight: 600; color: var(--text-primary); }
+    .top-actions { display: flex; align-items: center; gap: 1rem; }
+
+    .role-badge {
+      display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .9rem;
+      border-radius: 100px; font-family: var(--sans); font-size: .72rem; font-weight: 700;
+      text-transform: uppercase; background: var(--gold-pale); border: 1px solid rgba(201,168,76,0.3); color: var(--gold);
+    }
+
+    /* Tab Displays */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn .4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* Dashboard Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2.5rem; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 18px;
+      padding: 1.5rem; backdrop-filter: blur(16px); position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .stat-val { font-family: var(--serif); font-size: 2.4rem; font-weight: 600; color: var(--gold); margin-bottom: .2rem; }
+    .stat-title { font-family: var(--sans); font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+    /* Content Cards Grid */
+    .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .full-width { grid-column: 1 / -1; }
+
+    .panel-box {
+      background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px;
+      padding: 2rem; backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      margin-bottom: 1.5rem;
+    }
+    .panel-box h3 {
+      font-family: var(--serif); font-size: 1.4rem; font-weight: 600; color: var(--text-primary);
+      margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .data-table th, .data-table td {
+      padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: .88rem;
+    }
+    .data-table th {
+      font-family: var(--sans); font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      color: var(--text-muted); background: rgba(255,255,255,0.02);
+    }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+
+    .tag-badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: 4px; font-size: .7rem;
+      font-family: var(--sans); font-weight: 600; background: var(--blue-pale); color: var(--blue); border: 1px solid rgba(26,143,255,0.2);
+    }
+
+    /* ── GO LIVE ROLE PICKER MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 3000; background: rgba(2, 4, 8, 0.92);
+      backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      width: min(520px, 100%); background: var(--bg-card); border: 1px solid var(--glass-border);
+      border-radius: 26px; padding: 2.5rem; backdrop-filter: blur(24px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6); position: relative; text-align: center;
+    }
+    .modal-close {
+      position: absolute; top: 1.2rem; right: 1.2rem; background: none; border: none;
+      color: var(--text-muted); font-size: 1.4rem; cursor: pointer; transition: color .3s;
+    }
+    .modal-close:hover { color: var(--gold); }
+    .role-options { display: flex; flex-direction: column; gap: 1rem; margin: 1.8rem 0; }
+    .role-card {
+      display: flex; align-items: center; gap: 1.2rem; padding: 1.2rem 1.5rem;
+      background: var(--glass); border: 1px solid var(--border); border-radius: 16px;
+      cursor: pointer; transition: all .3s; text-align: left; text-decoration: none; color: inherit;
+    }
+    .role-card:hover {
+      border-color: var(--gold); background: var(--gold-pale); transform: translateY(-2px);
+    }
+    .role-icon {
+      width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; font-size: 1.4rem; background: rgba(201,168,76,0.1); color: var(--gold);
+    }
+    .role-card h4 { font-family: var(--sans); font-size: .95rem; font-weight: 600; color: var(--text-primary); }
+    .role-card p { font-size: .78rem; color: var(--text-secondary); }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 4000;
+      background: var(--bg-card); border: 1px solid var(--gold); color: var(--gold);
+      padding: .9rem 1.5rem; border-radius: 12px; font-family: var(--sans); font-size: .85rem;
+      font-weight: 600; backdrop-filter: blur(16px); box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      display: none; animation: toastIn .3s ease-out;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+    /* Switch Component */
+    .switch-wrap { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0; background-color: rgba(255,255,255,0.1);
+      transition: .4s; border-radius: 24px; border: 1px solid var(--border);
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+      background-color: var(--text-secondary); transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: rgba(201,168,76,0.3); border-color: var(--gold); }
+    input:checked + .slider:before { transform: translateX(22px); background-color: var(--gold); }
+
+    @media (max-width: 900px) {
+      .admin-wrapper { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: relative; }
+      .main-content { padding: 1.5rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN / ROLE ACCESS GATE OVERLAY ── -->
+<div id="loginGate">
+  <div class="login-card">
+    <div class="brand-logo">AR.</div>
+    <div class="brand-subtitle">Control Center Portal</div>
+
+    <!-- Role Selection Tabs -->
+    <div class="role-selector-group">
+      <button class="role-btn active" id="roleBtnAdmin" onclick="selectLoginRole('admin')">Admin</button>
+      <button class="role-btn" id="roleBtnUser" onclick="selectLoginRole('user')">User</button>
+      <button class="role-btn" id="roleBtnGuest" onclick="selectLoginRole('guest')">Guest</button>
+    </div>
+
+    <!-- Dynamic Form -->
+    <form onsubmit="handleLoginSubmit(event)">
+      <div id="credentialFields">
+        <div class="form-group">
+          <label class="form-label" for="loginUser">Username</label>
+          <input type="text" id="loginUser" class="form-input" placeholder="admin" value="admin"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="loginPass">Password</label>
+          <input type="password" id="loginPass" class="form-input" placeholder="••••••••" value="admin123"/>
+        </div>
+      </div>
+
+      <button type="submit" id="loginSubmitBtn" class="btn btn-gold btn-block" style="margin-top: .5rem;">Enter Dashboard &rarr;</button>
+    </form>
+
+    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: .6rem;">
+      <button onclick="openGoLiveModal()" class="btn btn-outline btn-block" style="font-size: .75rem;">🌐 View Live Portfolio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ADMIN WRAPPER ── -->
+<div class="admin-wrapper">
+
+  <!-- SIDEBAR NAV -->
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <div class="brand-logo">AR.</div>
+        <div class="brand-subtitle">Control Center</div>
+        <div class="sidebar-user">
+          <div class="user-avatar" id="sidebarAvatar">AR</div>
+          <div class="user-info">
+            <h4 id="sidebarUserName">Anita Reddy</h4>
+            <p id="sidebarRoleTitle">Administrator</p>
+          </div>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><button class="active" onclick="switchTab('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</button></li>
+        <li class="nav-item"><button onclick="switchTab('projects', this)"><span class="nav-icon">✦</span> Projects</button></li>
+        <li class="nav-item"><button onclick="switchTab('skills', this)"><span class="nav-icon">🧠</span> Skills</button></li>
+        <li class="nav-item"><button onclick="switchTab('resume', this)"><span class="nav-icon">📄</span> Resume</button></li>
+        <li class="nav-item"><button onclick="switchTab('contact', this)"><span class="nav-icon">🎯</span> Contact</button></li>
+        <li class="nav-item"><button onclick="switchTab('jarvis', this)"><span class="nav-icon">⚡</span> JARVIS Assistant</button></li>
+        <li class="nav-item"><button onclick="switchTab('messages', this)"><span class="nav-icon">✉️</span> Messages <span id="unreadBadge" style="margin-left:auto; background:var(--gold); color:#000; padding:2px 6px; border-radius:10px; font-size:.65rem; font-weight:700;">0</span></button></li>
+        <li class="nav-item"><button onclick="switchTab('settings', this)"><span class="nav-icon">⚙️</span> Site Settings</button></li>
+      </ul>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: .6rem; margin-top: 2rem;">
+      <button onclick="openGoLiveModal()" class="btn btn-gold btn-block">🚀 Switch Role / Go Live</button>
+      <button onclick="logoutPortal()" class="btn btn-outline btn-block">↪ Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN DASHBOARD CONTENT AREA -->
+  <main class="main-content">
+
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div>
+        <h1 class="page-title" id="tabHeading">Dashboard Overview</h1>
+        <p style="font-size: .85rem; color: var(--text-secondary);">Manage projects, skills, messages, and settings in real-time.</p>
+      </div>
+      <div class="top-actions">
+        <span class="role-badge" id="currentRoleBadge">⚡ Administrator</span>
+        <button onclick="openGoLiveModal()" class="btn btn-outline">🌐 Launch Preview</button>
+      </div>
+    </header>
+
+    <!-- ── TAB 1: DASHBOARD OVERVIEW ── -->
+    <div id="tab-dashboard" class="tab-pane active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="dashProjectCount">0</div>
+          <div class="stat-title">Total Projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="dashSkillCount">0</div>
+          <div class="stat-title">Skills Mastered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="dashMessageCount">0</div>
+          <div class="stat-title">Visitor Messages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--success);">Online</div>
+          <div class="stat-title">JARVIS AI Engine</div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="panel-box">
+          <h3>Quick Management Shortcuts</h3>
+          <div style="display: flex; flex-direction: column; gap: .8rem;">
+            <button onclick="switchTab('projects', document.querySelectorAll('.nav-menu button')[1])" class="btn btn-outline" style="justify-content: flex-start;">✦ Add / Edit Portfolio Projects</button>
+            <button onclick="switchTab('skills', document.querySelectorAll('.nav-menu button')[2])" class="btn btn-outline" style="justify-content: flex-start;">🧠 Update Technical Skills</button>
+            <button onclick="switchTab('resume', document.querySelectorAll('.nav-menu button')[3])" class="btn btn-outline" style="justify-content: flex-start;">📄 Upload New Resume URL</button>
+            <button onclick="switchTab('jarvis', document.querySelectorAll('.nav-menu button')[5])" class="btn btn-outline" style="justify-content: flex-start;">⚡ Configure JARVIS Voice Greetings</button>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <h3>System Quick Status</h3>
+          <div class="switch-wrap">
+            <div>
+              <div style="font-weight: 600; font-size: .9rem;">Maintenance Mode</div>
+              <div style="font-size: .75rem; color: var(--text-muted);">Temporarily close public portfolio</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="quickMaintToggle" onchange="toggleMaintenance(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="switch-wrap">
+            <div>
+              <div style="font-weight: 600; font-size: .9rem;">JARVIS Voice Engine</div>
+              <div style="font-size: .75rem; color: var(--text-muted);">Enable speech synthesis prompt</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="quickVoiceToggle" onchange="toggleJarvisVoice(this.checked)" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: PROJECTS MANAGEMENT ── -->
+    <div id="tab-projects" class="tab-pane">
+      <div class="cards-grid">
+        <div class="panel-box">
+          <h3 id="projectFormTitle">Add New Project</h3>
+          <form onsubmit="saveProject(event)">
+            <input type="hidden" id="projEditIndex" value="-1"/>
+            <div class="form-group">
+              <label class="form-label">Project Title</label>
+              <input type="text" id="projName" class="form-input" placeholder="e.g. Aureva Brand Portfolio" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <input type="text" id="projCategory" class="form-input" placeholder="e.g. Brand / Portfolio Website" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tech Stack (comma-separated)</label>
+              <input type="text" id="projTech" class="form-input" placeholder="HTML, CSS, JavaScript, React" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Live Link URL</label>
+              <input type="url" id="projLink" class="form-input" placeholder="https://example.app"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea id="projDesc" class="form-textarea" placeholder="Brief project summary..." required></textarea>
+            </div>
+            <div style="display: flex; gap: .6rem;">
+              <button type="submit" class="btn btn-gold" style="flex:1;">Save Project</button>
+              <button type="button" onclick="resetProjectForm()" class="btn btn-outline">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <h3>Existing Projects</h3>
+          <div style="max-height: 480px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Category</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projectsTableBody">
+                <!-- Dynamic -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: SKILLS MANAGEMENT ── -->
+    <div id="tab-skills" class="tab-pane">
+      <div class="cards-grid">
+        <div class="panel-box">
+          <h3 id="skillFormTitle">Add Technical Skill</h3>
+          <form onsubmit="saveSkill(event)">
+            <input type="hidden" id="skillEditIndex" value="-1"/>
+            <div class="form-group">
+              <label class="form-label">Skill Name</label>
+              <input type="text" id="skillName" class="form-input" placeholder="e.g. Prompt Engineering" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="skillCategory" class="form-select">
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                <option value="Web Development">Web Development</option>
+                <option value="Programming Logic">Programming Logic</option>
+                <option value="Tools & Platforms">Tools & Platforms</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Icon Emoji</label>
+              <input type="text" id="skillIcon" class="form-input" placeholder="🧠" value="🧠"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proficiency Level (%)</label>
+              <input type="number" id="skillLevel" class="form-input" min="1" max="100" value="90" required/>
+            </div>
+            <div style="display: flex; gap: .6rem;">
+              <button type="submit" class="btn btn-gold" style="flex:1;">Save Skill</button>
+              <button type="button" onclick="resetSkillForm()" class="btn btn-outline">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <h3>Skill Inventory</h3>
+          <div style="max-height: 480px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Skill</th>
+                  <th>Level</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="skillsTableBody">
+                <!-- Dynamic -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: RESUME CONTROL ── -->
+    <div id="tab-resume" class="tab-pane">
+      <div class="panel-box full-width">
+        <h3>Resume Document Management</h3>
+        <form onsubmit="saveResume(event)">
+          <div class="form-group">
+            <label class="form-label">Resume PDF Link or File URL</label>
+            <input type="text" id="resumeUrl" class="form-input" placeholder="Updated_Resume_compress.pdf" required/>
+          </div>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-gold">Update Resume Link</button>
+            <a id="resumePreviewLink" href="#" target="_blank" class="btn btn-outline">📄 Preview Link</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── TAB 5: CONTACT DETAILS ── -->
+    <div id="tab-contact" class="tab-pane">
+      <div class="panel-box full-width">
+        <h3>Contact & Social Profile Settings</h3>
+        <form onsubmit="saveContact(event)">
+          <div class="cards-grid">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="contactPhone" class="form-input" value="+91 21 00 2606"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="contactEmail" class="form-input" value="anitha@example.com"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location / City</label>
+              <input type="text" id="contactLocation" class="form-input" value="Vijayawada, India"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">LinkedIn Profile URL</label>
+              <input type="url" id="contactLinkedin" class="form-input" value="https://www.linkedin.com/in/anitha-reddy-yerredla-07a387413"/>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Availability Tagline</label>
+              <input type="text" id="contactAvailability" class="form-input" value="B.Tech 2nd Year, CS — KL University"/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-gold" style="margin-top: 1.5rem;">Save Contact Info</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── TAB 6: JARVIS ASSISTANT ── -->
+    <div id="tab-jarvis" class="tab-pane">
+      <div class="panel-box full-width">
+        <h3>JARVIS AI Assistant Configuration</h3>
+        <form onsubmit="saveJarvis(event)">
+          <div class="switch-wrap" style="margin-bottom: 1.5rem;">
+            <div>
+              <div style="font-weight: 600; font-size: 1rem; color: var(--gold);">Enable JARVIS Overlay</div>
+              <div style="font-size: .8rem; color: var(--text-muted);">Allow visitors to launch interactive voice assistant</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="jarvisEnableToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap" style="margin-bottom: 1.5rem;">
+            <div>
+              <div style="font-weight: 600; font-size: 1rem;">Speech Synthesis Audio</div>
+              <div style="font-size: .8rem; color: var(--text-muted);">Automatically speak greetings using TTS</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="jarvisVoiceToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assistant Name</label>
+            <input type="text" id="jarvisName" class="form-input" value="JARVIS"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Welcome Greeting Speech</label>
+            <textarea id="jarvisGreeting" class="form-textarea" required>Hello Ma'am Anita. I'm JARVIS, your personal AI assistant. How can I help you today?</textarea>
+          </div>
+
+          <button type="submit" class="btn btn-gold">Save Assistant Settings</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── TAB 7: MESSAGES INBOX ── -->
+    <div id="tab-messages" class="tab-pane">
+      <div class="panel-box full-width">
+        <h3>Visitor Messages Inbox</h3>
+        <div style="max-height: 520px; overflow-y: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Sender</th>
+                <th>Email</th>
+                <th>Message</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="messagesTableBody">
+              <!-- Dynamic -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 8: SITE SETTINGS ── -->
+    <div id="tab-settings" class="tab-pane">
+      <div class="panel-box full-width">
+        <h3>Global Portfolio Controls</h3>
+        <form onsubmit="saveSiteSettings(event)">
+          <div class="switch-wrap" style="margin-bottom: 1.5rem;">
+            <div>
+              <div style="font-weight: 600; font-size: 1rem; color: var(--danger);">Maintenance Mode</div>
+              <div style="font-size: .8rem; color: var(--text-muted);">Displays a maintenance screen on the site</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingMaintToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap" style="margin-bottom: 1.5rem;">
+            <div>
+              <div style="font-weight: 600; font-size: 1rem;">Show Selected Work Section</div>
+              <div style="font-size: .8rem; color: var(--text-muted);">Toggle projects section visibility</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingShowProjectsToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap" style="margin-bottom: 1.5rem;">
+            <div>
+              <div style="font-weight: 600; font-size: 1rem;">Show Skills & Expertise Section</div>
+              <div style="font-size: .8rem; color: var(--text-muted);">Toggle technical skills section visibility</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingShowSkillsToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Portfolio Site Title</label>
+            <input type="text" id="settingTitle" class="form-input" value="Anita Reddy — AI Creator & Prompt Engineer"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hero Banner Announcement Tag</label>
+            <input type="text" id="settingAnnouncement" class="form-input" value="Prompt Engineer · AI Creator · Future-Focused Builder"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hero Subtitle Statement</label>
+            <textarea id="settingTagline" class="form-textarea">Hi, I'm Anita Reddy — a Prompt Engineer and AI creator transforming ideas into intelligent, useful digital experiences.</textarea>
+          </div>
+
+          <button type="submit" class="btn btn-gold">Save Global Settings</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── ROLE / GO LIVE MODAL ── -->
+<div class="modal-overlay" id="goLiveModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeGoLiveModal()">&times;</button>
+    <h2 style="font-family:var(--serif); font-size:1.8rem; color:var(--text-primary);">Launch Portfolio Preview</h2>
+    <p style="font-size:.85rem; color:var(--text-secondary); margin-top:.4rem;">Select an access role mode to view the portfolio:</p>
+    
+    <div class="role-options">
+      <a href="index.html?role=admin" class="role-card" onclick="setSessionRole('admin')">
+        <div class="role-icon">⚡</div>
+        <div>
+          <h4>Admin Access (Full Control)</h4>
+          <p>Complete control with quick edit badges enabled.</p>
+        </div>
+      </a>
+
+      <a href="index.html?role=user" class="role-card" onclick="setSessionRole('user')">
+        <div class="role-icon">👤</div>
+        <div>
+          <h4>Standard User Access</h4>
+          <p>Standard interactive visitor view with JARVIS AI support.</p>
+        </div>
+      </a>
+
+      <a href="index.html?role=guest" class="role-card" onclick="setSessionRole('guest')">
+        <div class="role-icon">👁️</div>
+        <div>
+          <h4>Guest Read-Only Mode</h4>
+          <p>Clean view-only mode for recruiters and quick previews.</p>
+        </div>
+      </a>
+    </div>
+
+    <button onclick="closeGoLiveModal()" class="btn btn-outline btn-block">Stay in Dashboard</button>
+  </div>
+</div>
+
+<!-- ── TOAST NOTIFICATION ── -->
+<div id="toast">Changes saved successfully!</div>
+
+<script>
+// ── STORAGE & DATA ENGINE ──
+const STORAGE_KEY = "anithaPortfolioAdminData";
+let activeSelectedRole = "admin";
+
+const defaultData = {
+  authenticated: true,
+  currentRole: 'admin',
+  resume: { url: 'Updated_Resume_compress.pdf' },
+  contact: {
+    phone: '+91 21 00 2606',
+    email: 'anitha@example.com',
+    location: 'Vijayawada, India',
+    linkedin: 'https://www.linkedin.com/in/anitha-reddy-yerredla-07a387413?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+    availability: 'B.Tech 2nd Year, CS — KL University'
+  },
+  jarvis: {
+    enabled: true,
+    voice: true,
+    name: 'JARVIS',
+    greeting: "Hello Ma'am Anita. I'm JARVIS, your personal AI assistant. How can I help you today?"
+  },
+  site: {
+    maintenance: false,
+    showProjects: true,
+    showSkills: true,
+    title: 'Anita Reddy — AI Creator & Prompt Engineer',
+    announcement: 'Prompt Engineer · AI Creator · Future-Focused Builder',
+    tagline: "Hi, I'm Anita Reddy — a Prompt Engineer and AI creator transforming ideas into intelligent, useful digital experiences."
+  },
+  projects: [
+    { name: "Aureva Brand Portfolio", category: "Brand / Portfolio Website", tech: "Brand Identity, Web Design, Portfolio", link: "https://aureva-brand-portfolio.vercel.app/", description: "A refined digital portfolio experience with a premium visual identity." },
+    { name: "Anu Designs", category: "Creative / Personal Website", tech: "Creative Design, Personal Brand, UI/UX", link: "https://anudesigns.github.io/www.anudesigns.com/", description: "A creative web experience designed to present digital work." },
+    { name: "Crochet Showcase", category: "Showcase / E-commerce", tech: "E-commerce, Showcase, Visual Design", link: "https://crochet-showcase-demo.vercel.app", description: "A visually engaging showcase celebrating handmade crochet creations." }
+  ],
+  skills: [
+    { name: "Prompt Engineering", category: "Artificial Intelligence", icon: "🧠", level: 95 },
+    { name: "Artificial Intelligence", category: "Artificial Intelligence", icon: "✨", level: 90 },
+    { name: "Web Development", category: "Web Development", icon: "💻", level: 85 },
+    { name: "Programming Logic", category: "Programming Logic", icon: "⚡", level: 88 }
+  ],
+  messages: [
+    { id: "1", name: "Recruiter Team", email: "hr@techcorp.io", message: "Hi Anita, we loved your JARVIS AI project! Are you available for a summer internship?", date: "10/24/2026, 10:15 AM", read: false }
+  ]
+};
+
+function getAdminData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+      return defaultData;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return defaultData;
+  }
+}
+
+function saveAdminData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  showToast("Changes saved successfully!");
+  renderAllData();
+}
+
+// ── ROLE TOGGLE ON LOGIN GATE ──
+function selectLoginRole(role) {
+  activeSelectedRole = role;
+  
+  // Highlight Segmented Buttons
+  document.getElementById('roleBtnAdmin').classList.toggle('active', role === 'admin');
+  document.getElementById('roleBtnUser').classList.toggle('active', role === 'user');
+  document.getElementById('roleBtnGuest').classList.toggle('active', role === 'guest');
+
+  const creds = document.getElementById('credentialFields');
+  const btn = document.getElementById('loginSubmitBtn');
+
+  if (role === 'admin') {
+    creds.style.display = 'block';
+    btn.innerHTML = 'Enter Dashboard &rarr;';
+  } else if (role === 'user') {
+    creds.style.display = 'none';
+    btn.innerHTML = 'Continue as User &rarr;';
+  } else if (role === 'guest') {
+    creds.style.display = 'none';
+    btn.innerHTML = 'Continue as Guest &rarr;';
+  }
+}
+
+function handleLoginSubmit(e) {
+  e.preventDefault();
+  const db = getAdminData();
+
+  if (activeSelectedRole === 'admin') {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+
+    if (u === 'admin' && p === 'admin123') {
+      db.authenticated = true;
+      db.currentRole = 'admin';
+      saveAdminData(db);
+      document.getElementById('loginGate').style.display = 'none';
+    } else {
+      alert("Invalid Admin Credentials! (Use admin / admin123)");
+    }
+  } else {
+    // User or Guest instant login
+    db.authenticated = true;
+    db.currentRole = activeSelectedRole;
+    saveAdminData(db);
+    document.getElementById('loginGate').style.display = 'none';
+  }
+}
+
+function setSessionRole(role) {
+  const db = getAdminData();
+  db.currentRole = role;
+  saveAdminData(db);
+}
+
+function logoutPortal() {
+  const db = getAdminData();
+  db.authenticated = false;
+  saveAdminData(db);
+  document.getElementById('loginGate').style.display = 'flex';
+}
+
+// ── DATA RENDER ──
+function renderAllData() {
+  const db = getAdminData();
+
+  // Login Visibility State
+  const loginGate = document.getElementById('loginGate');
+  if (db.authenticated) {
+    loginGate.style.display = 'none';
+  } else {
+    loginGate.style.display = 'flex';
+  }
+
+  // Update Sidebar & Role Badge
+  const roleNameMap = { admin: 'Administrator', user: 'Standard User', guest: 'Guest Visitor' };
+  const roleIconMap = { admin: '⚡', user: '👤', guest: '👁️' };
+  
+  const currentRole = db.currentRole || 'admin';
+  document.getElementById('sidebarRoleTitle').innerText = roleNameMap[currentRole] || 'Administrator';
+  document.getElementById('currentRoleBadge').innerText = `${roleIconMap[currentRole] || '⚡'} ${roleNameMap[currentRole] || 'Administrator'}`;
+
+  // Read Counters
+  document.getElementById('dashProjectCount').innerText = db.projects ? db.projects.length : 0;
+  document.getElementById('dashSkillCount').innerText = db.skills ? db.skills.length : 0;
+  
+  const unreadCount = db.messages ? db.messages.filter(m => !m.read).length : 0;
+  document.getElementById('dashMessageCount').innerText = db.messages ? db.messages.length : 0;
+  document.getElementById('unreadBadge').innerText = unreadCount;
+
+  // Quick Toggles
+  document.getElementById('quickMaintToggle').checked = !!db.site.maintenance;
+  document.getElementById('quickVoiceToggle').checked = !!db.jarvis.voice;
+
+  // Projects Table
+  const pTable = document.getElementById('projectsTableBody');
+  if (pTable && db.projects) {
+    pTable.innerHTML = db.projects.map((p, idx) => `
+      <tr>
+        <td><strong>${escapeHTML(p.name)}</strong></td>
+        <td><span class="tag-badge">${escapeHTML(p.category)}</span></td>
+        <td>
+          <button onclick="editProject(${idx})" class="btn btn-outline" style="padding:.3rem .6rem; font-size:.7rem;">Edit</button>
+          <button onclick="deleteProject(${idx})" class="btn btn-danger" style="padding:.3rem .6rem; font-size:.7rem;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Skills Table
+  const sTable = document.getElementById('skillsTableBody');
+  if (sTable && db.skills) {
+    sTable.innerHTML = db.skills.map((s, idx) => `
+      <tr>
+        <td>${s.icon || '✦'} <strong>${escapeHTML(s.name)}</strong></td>
+        <td>${s.level}%</td>
+        <td>
+          <button onclick="editSkill(${idx})" class="btn btn-outline" style="padding:.3rem .6rem; font-size:.7rem;">Edit</button>
+          <button onclick="deleteSkill(${idx})" class="btn btn-danger" style="padding:.3rem .6rem; font-size:.7rem;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Forms Sync
+  if (db.resume) {
+    document.getElementById('resumeUrl').value = db.resume.url || '';
+    document.getElementById('resumePreviewLink').href = db.resume.url || '#';
+  }
+
+  if (db.contact) {
+    document.getElementById('contactPhone').value = db.contact.phone || '';
+    document.getElementById('contactEmail').value = db.contact.email || '';
+    document.getElementById('contactLocation').value = db.contact.location || '';
+    document.getElementById('contactLinkedin').value = db.contact.linkedin || '';
+    document.getElementById('contactAvailability').value = db.contact.availability || '';
+  }
+
+  if (db.jarvis) {
+    document.getElementById('jarvisEnableToggle').checked = !!db.jarvis.enabled;
+    document.getElementById('jarvisVoiceToggle').checked = !!db.jarvis.voice;
+    document.getElementById('jarvisName').value = db.jarvis.name || 'JARVIS';
+    document.getElementById('jarvisGreeting').value = db.jarvis.greeting || '';
+  }
+
+  // Messages Inbox
+  const mTable = document.getElementById('messagesTableBody');
+  if (mTable && db.messages) {
+    if (db.messages.length === 0) {
+      mTable.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No visitor messages received yet.</td></tr>`;
+    } else {
+      mTable.innerHTML = db.messages.map((m, idx) => `
+        <tr style="${!m.read ? 'background:rgba(201,168,76,0.06); font-weight:600;' : ''}">
+          <td style="font-size:.75rem; color:var(--text-muted);">${escapeHTML(m.date)}</td>
+          <td>${escapeHTML(m.name)}</td>
+          <td><a href="mailto:${escapeHTML(m.email)}" style="color:var(--gold); text-decoration:none;">${escapeHTML(m.email)}</a></td>
+          <td>${escapeHTML(m.message)}</td>
+          <td>
+            ${!m.read ? `<button onclick="markReadMessage(${idx})" class="btn btn-gold" style="padding:.2rem .5rem; font-size:.65rem;">Mark Read</button>` : ''}
+            <button onclick="deleteMessage(${idx})" class="btn btn-danger" style="padding:.2rem .5rem; font-size:.65rem;">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Settings Sync
+  if (db.site) {
+    document.getElementById('settingMaintToggle').checked = !!db.site.maintenance;
+    document.getElementById('settingShowProjectsToggle').checked = db.site.showProjects !== false;
+    document.getElementById('settingShowSkillsToggle').checked = db.site.showSkills !== false;
+    document.getElementById('settingTitle').value = db.site.title || '';
+    document.getElementById('settingAnnouncement').value = db.site.announcement || '';
+    document.getElementById('settingTagline').value = db.site.tagline || '';
+  }
+}
+
+// ── NAVIGATION TABS ──
+function switchTab(tabId, btnEl) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-menu button').forEach(el => el.classList.remove('active'));
+
+  const target = document.getElementById('tab-' + tabId);
+  if (target) target.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard Overview',
+    projects: 'Projects Management',
+    skills: 'Technical Skills Inventory',
+    resume: 'Resume Document Control',
+    contact: 'Contact & Social Profiles',
+    jarvis: 'JARVIS Assistant Engine',
+    messages: 'Visitor Messages Inbox',
+    settings: 'Global Site Settings'
+  };
+  document.getElementById('tabHeading').innerText = titles[tabId] || 'Control Center';
+}
+
+// ── MODAL CONTROLS ──
+function openGoLiveModal() { document.getElementById('goLiveModal').classList.add('active'); }
+function closeGoLiveModal() { document.getElementById('goLiveModal').classList.remove('active'); }
+
+// ── CRUD HANDLERS ──
+function saveProject(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  const idx = parseInt(document.getElementById('projEditIndex').value);
+  const projObj = {
+    name: document.getElementById('projName').value.trim(),
+    category: document.getElementById('projCategory').value.trim(),
+    tech: document.getElementById('projTech').value.trim(),
+    link: document.getElementById('projLink').value.trim(),
+    description: document.getElementById('projDesc').value.trim()
+  };
+
+  if (idx >= 0) db.projects[idx] = projObj;
+  else db.projects.push(projObj);
+
+  saveAdminData(db);
+  resetProjectForm();
+}
+
+function editProject(idx) {
+  const db = getAdminData();
+  const p = db.projects[idx];
+  if (!p) return;
+  document.getElementById('projEditIndex').value = idx;
+  document.getElementById('projName').value = p.name;
+  document.getElementById('projCategory').value = p.category;
+  document.getElementById('projTech').value = p.tech;
+  document.getElementById('projLink').value = p.link || '';
+  document.getElementById('projDesc').value = p.description;
+  document.getElementById('projectFormTitle').innerText = "Edit Project";
+}
+
+function deleteProject(idx) {
+  if (!confirm("Delete this project?")) return;
+  const db = getAdminData();
+  db.projects.splice(idx, 1);
+  saveAdminData(db);
+}
+
+function resetProjectForm() {
+  document.getElementById('projEditIndex').value = "-1";
+  document.getElementById('projName').value = "";
+  document.getElementById('projCategory').value = "";
+  document.getElementById('projTech').value = "";
+  document.getElementById('projLink').value = "";
+  document.getElementById('projDesc').value = "";
+  document.getElementById('projectFormTitle').innerText = "Add New Project";
+}
+
+// Skills
+function saveSkill(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  const idx = parseInt(document.getElementById('skillEditIndex').value);
+  const skillObj = {
+    name: document.getElementById('skillName').value.trim(),
+    category: document.getElementById('skillCategory').value,
+    icon: document.getElementById('skillIcon').value.trim() || '✦',
+    level: parseInt(document.getElementById('skillLevel').value)
+  };
+
+  if (idx >= 0) db.skills[idx] = skillObj;
+  else db.skills.push(skillObj);
+
+  saveAdminData(db);
+  resetSkillForm();
+}
+
+function editSkill(idx) {
+  const db = getAdminData();
+  const s = db.skills[idx];
+  if (!s) return;
+  document.getElementById('skillEditIndex').value = idx;
+  document.getElementById('skillName').value = s.name;
+  document.getElementById('skillCategory').value = s.category;
+  document.getElementById('skillIcon').value = s.icon;
+  document.getElementById('skillLevel').value = s.level;
+  document.getElementById('skillFormTitle').innerText = "Edit Skill";
+}
+
+function deleteSkill(idx) {
+  if (!confirm("Delete this skill?")) return;
+  const db = getAdminData();
+  db.skills.splice(idx, 1);
+  saveAdminData(db);
+}
+
+function resetSkillForm() {
+  document.getElementById('skillEditIndex').value = "-1";
+  document.getElementById('skillName').value = "";
+  document.getElementById('skillIcon').value = "🧠";
+  document.getElementById('skillLevel').value = "90";
+  document.getElementById('skillFormTitle').innerText = "Add Technical Skill";
+}
+
+// Resume
+function saveResume(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  db.resume.url = document.getElementById('resumeUrl').value.trim();
+  saveAdminData(db);
+}
+
+// Contact
+function saveContact(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  db.contact = {
+    phone: document.getElementById('contactPhone').value.trim(),
+    email: document.getElementById('contactEmail').value.trim(),
+    location: document.getElementById('contactLocation').value.trim(),
+    linkedin: document.getElementById('contactLinkedin').value.trim(),
+    availability: document.getElementById('contactAvailability').value.trim()
+  };
+  saveAdminData(db);
+}
+
+// JARVIS
+function saveJarvis(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  db.jarvis = {
+    enabled: document.getElementById('jarvisEnableToggle').checked,
+    voice: document.getElementById('jarvisVoiceToggle').checked,
+    name: document.getElementById('jarvisName').value.trim(),
+    greeting: document.getElementById('jarvisGreeting').value.trim()
+  };
+  saveAdminData(db);
+}
+
+// Messages
+function markReadMessage(idx) {
+  const db = getAdminData();
+  if (db.messages[idx]) {
+    db.messages[idx].read = true;
+    saveAdminData(db);
+  }
+}
+
+function deleteMessage(idx) {
+  const db = getAdminData();
+  db.messages.splice(idx, 1);
+  saveAdminData(db);
+}
+
+// Settings
+function saveSiteSettings(e) {
+  e.preventDefault();
+  const db = getAdminData();
+  db.site = {
+    maintenance: document.getElementById('settingMaintToggle').checked,
+    showProjects: document.getElementById('settingShowProjectsToggle').checked,
+    showSkills: document.getElementById('settingShowSkillsToggle').checked,
+    title: document.getElementById('settingTitle').value.trim(),
+    announcement: document.getElementById('settingAnnouncement').value.trim(),
+    tagline: document.getElementById('settingTagline').value.trim()
+  };
+  saveAdminData(db);
+}
+
+// Toggles
+function toggleMaintenance(status) {
+  const db = getAdminData();
+  db.site.maintenance = status;
+  saveAdminData(db);
+}
+
+function toggleJarvisVoice(status) {
+  const db = getAdminData();
+  db.jarvis.voice = status;
+  saveAdminData(db);
+}
+
+// Helpers
+function escapeHTML(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.innerText = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+// Load Handler
+document.addEventListener('DOMContentLoaded', () => {
+  renderAllData();
+});
+</script>
+</body>
+</html>

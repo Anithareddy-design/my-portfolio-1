@@ -1,18 +1,3 @@
-/* =========================================================
-   ANITHA REDDY PORTFOLIO ADMIN PANEL
-   FRONTEND DEMO ONLY
-
-   Demo Login:
-   Username: admin
-   Password: admin123
-
-   NOTE:
-   This uses LocalStorage because the portfolio is currently
-   a frontend/GitHub Pages project. This is NOT secure
-   production authentication.
-========================================================= */
-
-
 /* ================= CONFIG ================= */
 
 const ADMIN_USERNAME = "admin";
@@ -262,6 +247,8 @@ function saveData() {
     JSON.stringify(data)
   );
 
+  window.dispatchEvent(new CustomEvent("portfolio:data-updated"));
+
 }
 
 
@@ -292,59 +279,73 @@ document.addEventListener("DOMContentLoaded", () => {
     showDashboard();
   }
 
-  document
-    .getElementById("loginForm")
-    .addEventListener("submit", login);
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", login);
+  }
 
-  document
-    .getElementById("projectForm")
-    .addEventListener("submit", saveProject);
+  const projectForm = document.getElementById("projectForm");
+  if (projectForm) {
+    projectForm.addEventListener("submit", saveProject);
+  }
 
-  document
-    .getElementById("skillForm")
-    .addEventListener("submit", saveSkill);
+  const skillForm = document.getElementById("skillForm");
+  if (skillForm) {
+    skillForm.addEventListener("submit", saveSkill);
+  }
 
-  document
-    .getElementById("resumeForm")
-    .addEventListener("submit", saveResume);
+  const resumeForm = document.getElementById("resumeForm");
+  if (resumeForm) {
+    resumeForm.addEventListener("submit", saveResume);
+  }
 
-  document
-    .getElementById("contactForm")
-    .addEventListener("submit", saveContact);
+  const contactForm = document.getElementById("contactForm");
+  if (contactForm) {
+    contactForm.addEventListener("submit", saveContact);
+  }
 
-  document
-    .getElementById("jarvisForm")
-    .addEventListener("submit", saveJarvis);
+  const jarvisForm = document.getElementById("jarvisForm");
+  if (jarvisForm) {
+    jarvisForm.addEventListener("submit", saveJarvis);
+  }
 
-  document
-    .getElementById("settingsForm")
-    .addEventListener("submit", saveSettings);
+  const settingsForm = document.getElementById("settingsForm");
+  if (settingsForm) {
+    settingsForm.addEventListener("submit", saveSettings);
+  }
 
-  document
-    .getElementById("skillLevel")
-    .addEventListener("input", function () {
-
-      document.getElementById("skillLevelValue").textContent =
-        this.value;
-
+  const skillLevel = document.getElementById("skillLevel");
+  if (skillLevel) {
+    skillLevel.addEventListener("input", function () {
+      const display = document.getElementById("skillLevelValue");
+      if (display) display.textContent = this.value;
     });
+  }
 
-  document
-    .getElementById("importFile")
-    .addEventListener("change", importData);
+  const importFile = document.getElementById("importFile");
+  if (importFile) {
+    importFile.addEventListener("change", importData);
+  }
 
   document.querySelectorAll(".nav-item").forEach(button => {
-
     button.addEventListener("click", () => {
-
       showSection(button.dataset.section);
-
     });
-
   });
 
   renderEverything();
 
+});
+
+window.addEventListener("storage", event => {
+  if (event.key !== STORAGE_KEY || !event.newValue) return;
+  try {
+    const updated = JSON.parse(event.newValue);
+    data = { ...data, ...updated };
+    renderEverything();
+  } catch (error) {
+    console.error("Could not sync portfolio data:", error);
+  }
 });
 
 
@@ -372,7 +373,7 @@ function login(event) {
       "true"
     );
 
-    error.textContent = "";
+    if (error) error.textContent = "";
 
     addActivity("Admin logged into dashboard");
 
@@ -380,8 +381,9 @@ function login(event) {
 
   } else {
 
-    error.textContent =
-      "Invalid username or password.";
+    if (error) {
+      error.textContent = "Invalid username or password.";
+    }
 
   }
 
@@ -390,13 +392,11 @@ function login(event) {
 
 function showDashboard() {
 
-  document
-    .getElementById("loginPage")
-    .style.display = "none";
+  const loginPage = document.getElementById("loginPage");
+  const dashboard = document.getElementById("dashboard");
 
-  document
-    .getElementById("dashboard")
-    .classList.add("show");
+  if (loginPage) loginPage.style.display = "none";
+  if (dashboard) dashboard.classList.add("show");
 
   renderEverything();
 
@@ -406,18 +406,7 @@ function showDashboard() {
 function logout() {
 
   sessionStorage.removeItem(SESSION_KEY);
-
-  document
-    .getElementById("dashboard")
-    .classList.remove("show");
-
-  document
-    .getElementById("loginPage")
-    .style.display = "flex";
-
-  document
-    .getElementById("password")
-    .value = "";
+  location.href = "admin.html";
 
 }
 
@@ -429,34 +418,24 @@ function showSection(sectionId) {
   document
     .querySelectorAll(".page-section")
     .forEach(section => {
-
       section.classList.remove("active");
-
     });
 
-
-  const section =
-    document.getElementById(sectionId);
-
+  const section = document.getElementById(sectionId);
   if (!section) return;
 
   section.classList.add("active");
 
-
   document
     .querySelectorAll(".nav-item")
     .forEach(button => {
-
       button.classList.toggle(
         "active",
         button.dataset.section === sectionId
       );
-
     });
 
-
   const titles = {
-
     dashboardSection: "Dashboard",
     projectsSection: "Projects",
     skillsSection: "Skills",
@@ -465,13 +444,12 @@ function showSection(sectionId) {
     jarvisSection: "JARVIS",
     messagesSection: "Messages",
     settingsSection: "Site Settings"
-
   };
 
-
-  document.getElementById("pageTitle").textContent =
-    titles[sectionId] || "Dashboard";
-
+  const titleElem = document.getElementById("pageTitle");
+  if (titleElem) {
+    titleElem.textContent = titles[sectionId] || "Dashboard";
+  }
 
   renderEverything();
 
@@ -499,14 +477,14 @@ function renderEverything() {
 
 function updateStats() {
 
-  document.getElementById("projectCount").textContent =
-    data.projects.length;
+  const projectCount = document.getElementById("projectCount");
+  if (projectCount) projectCount.textContent = data.projects.length;
 
-  document.getElementById("skillCount").textContent =
-    data.skills.length;
+  const skillCount = document.getElementById("skillCount");
+  if (skillCount) skillCount.textContent = data.skills.length;
 
-  document.getElementById("jarvisStatus").textContent =
-    data.jarvis.enabled ? "ON" : "OFF";
+  const jarvisStatus = document.getElementById("jarvisStatus");
+  if (jarvisStatus) jarvisStatus.textContent = data.jarvis.enabled ? "ON" : "OFF";
 
 }
 
@@ -515,25 +493,18 @@ function updateStats() {
 
 function renderProjects() {
 
-  const container =
-    document.getElementById("projectList");
-
+  const container = document.getElementById("projectList");
   if (!container) return;
 
-
   if (data.projects.length === 0) {
-
     container.innerHTML = `
       <div class="empty-state">
         No projects found.<br>
         Click "Add Project" to create one.
       </div>
     `;
-
     return;
-
   }
-
 
   container.innerHTML =
     data.projects.map(project => `
@@ -614,66 +585,48 @@ function renderProjects() {
 
 function openProjectModal() {
 
-  document.getElementById("projectModalTitle").textContent =
-    "Add New Project";
+  const title = document.getElementById("projectModalTitle");
+  if (title) title.textContent = "Add New Project";
 
-  document.getElementById("editProjectId").value = "";
+  const editId = document.getElementById("editProjectId");
+  if (editId) editId.value = "";
 
-  document.getElementById("projectForm").reset();
+  const form = document.getElementById("projectForm");
+  if (form) form.reset();
 
-  document.getElementById("projectModal").classList.add("show");
+  const modal = document.getElementById("projectModal");
+  if (modal) modal.classList.add("show");
 
 }
 
 
 function closeProjectModal() {
 
-  document
-    .getElementById("projectModal")
-    .classList.remove("show");
+  const modal = document.getElementById("projectModal");
+  if (modal) modal.classList.remove("show");
 
 }
 
 
 function editProject(id) {
 
-  const project =
-    data.projects.find(item => item.id === id);
-
+  const project = data.projects.find(item => item.id === id);
   if (!project) return;
 
+  const title = document.getElementById("projectModalTitle");
+  if (title) title.textContent = "Edit Project";
 
-  document.getElementById("projectModalTitle").textContent =
-    "Edit Project";
+  document.getElementById("editProjectId").value = project.id;
+  document.getElementById("projectName").value = project.name;
+  document.getElementById("projectCategory").value = project.category;
+  document.getElementById("projectDescription").value = project.description;
+  document.getElementById("projectLink").value = project.link || "";
+  document.getElementById("projectGithub").value = project.github || "";
+  document.getElementById("projectTech").value = project.tech || "";
+  document.getElementById("projectFeatured").checked = Boolean(project.featured);
 
-  document.getElementById("editProjectId").value =
-    project.id;
-
-  document.getElementById("projectName").value =
-    project.name;
-
-  document.getElementById("projectCategory").value =
-    project.category;
-
-  document.getElementById("projectDescription").value =
-    project.description;
-
-  document.getElementById("projectLink").value =
-    project.link || "";
-
-  document.getElementById("projectGithub").value =
-    project.github || "";
-
-  document.getElementById("projectTech").value =
-    project.tech || "";
-
-  document.getElementById("projectFeatured").checked =
-    Boolean(project.featured);
-
-
-  document
-    .getElementById("projectModal")
-    .classList.add("show");
+  const modal = document.getElementById("projectModal");
+  if (modal) modal.classList.add("show");
 
 }
 
@@ -682,62 +635,31 @@ function saveProject(event) {
 
   event.preventDefault();
 
-
-  const id =
-    document.getElementById("editProjectId").value;
-
+  const id = document.getElementById("editProjectId").value;
 
   const project = {
-
     id: id || generateId(),
-
-    name:
-      document.getElementById("projectName").value.trim(),
-
-    category:
-      document.getElementById("projectCategory").value.trim(),
-
-    description:
-      document.getElementById("projectDescription").value.trim(),
-
-    link:
-      document.getElementById("projectLink").value.trim(),
-
-    github:
-      document.getElementById("projectGithub").value.trim(),
-
-    tech:
-      document.getElementById("projectTech").value.trim(),
-
-    featured:
-      document.getElementById("projectFeatured").checked
-
+    name: document.getElementById("projectName").value.trim(),
+    category: document.getElementById("projectCategory").value.trim(),
+    description: document.getElementById("projectDescription").value.trim(),
+    link: document.getElementById("projectLink").value.trim(),
+    github: document.getElementById("projectGithub").value.trim(),
+    tech: document.getElementById("projectTech").value.trim(),
+    featured: document.getElementById("projectFeatured").checked
   };
 
-
   if (id) {
-
-    const index =
-      data.projects.findIndex(item => item.id === id);
-
+    const index = data.projects.findIndex(item => item.id === id);
     if (index !== -1) {
       data.projects[index] = project;
     }
-
     addActivity(`Updated project: ${project.name}`);
-
     showToast("Project updated successfully.");
-
   } else {
-
     data.projects.push(project);
-
     addActivity(`Added project: ${project.name}`);
-
     showToast("Project added successfully.");
-
   }
-
 
   saveData();
   renderEverything();
@@ -748,28 +670,17 @@ function saveProject(event) {
 
 function deleteProject(id) {
 
-  const project =
-    data.projects.find(item => item.id === id);
-
+  const project = data.projects.find(item => item.id === id);
   if (!project) return;
 
+  if (!confirm(`Delete "${project.name}" from your portfolio?`)) return;
 
-  if (
-    !confirm(
-      `Delete "${project.name}" from your portfolio?`
-    )
-  ) return;
-
-
-  data.projects =
-    data.projects.filter(item => item.id !== id);
-
+  data.projects = data.projects.filter(item => item.id !== id);
 
   addActivity(`Deleted project: ${project.name}`);
 
   saveData();
   renderEverything();
-
   showToast("Project deleted.");
 
 }
@@ -779,24 +690,17 @@ function deleteProject(id) {
 
 function renderSkills() {
 
-  const container =
-    document.getElementById("skillsList");
-
+  const container = document.getElementById("skillsList");
   if (!container) return;
 
-
   if (data.skills.length === 0) {
-
     container.innerHTML = `
       <div class="empty-state">
         No skills added yet.
       </div>
     `;
-
     return;
-
   }
-
 
   container.innerHTML =
     data.skills.map(skill => `
@@ -867,66 +771,52 @@ function renderSkills() {
 
 function openSkillModal() {
 
-  document.getElementById("skillModalTitle").textContent =
-    "Add New Skill";
+  const title = document.getElementById("skillModalTitle");
+  if (title) title.textContent = "Add New Skill";
 
-  document.getElementById("editSkillId").value = "";
+  const editId = document.getElementById("editSkillId");
+  if (editId) editId.value = "";
 
-  document.getElementById("skillForm").reset();
+  const form = document.getElementById("skillForm");
+  if (form) form.reset();
 
-  document.getElementById("skillLevel").value = 80;
+  const level = document.getElementById("skillLevel");
+  if (level) level.value = 80;
 
-  document.getElementById("skillLevelValue").textContent = 80;
+  const levelVal = document.getElementById("skillLevelValue");
+  if (levelVal) levelVal.textContent = 80;
 
-  document
-    .getElementById("skillModal")
-    .classList.add("show");
+  const modal = document.getElementById("skillModal");
+  if (modal) modal.classList.add("show");
 
 }
 
 
 function closeSkillModal() {
 
-  document
-    .getElementById("skillModal")
-    .classList.remove("show");
+  const modal = document.getElementById("skillModal");
+  if (modal) modal.classList.remove("show");
 
 }
 
 
 function editSkill(id) {
 
-  const skill =
-    data.skills.find(item => item.id === id);
-
+  const skill = data.skills.find(item => item.id === id);
   if (!skill) return;
 
+  const title = document.getElementById("skillModalTitle");
+  if (title) title.textContent = "Edit Skill";
 
-  document.getElementById("skillModalTitle").textContent =
-    "Edit Skill";
+  document.getElementById("editSkillId").value = skill.id;
+  document.getElementById("skillName").value = skill.name;
+  document.getElementById("skillCategory").value = skill.category;
+  document.getElementById("skillLevel").value = skill.level;
+  document.getElementById("skillLevelValue").textContent = skill.level;
+  document.getElementById("skillIcon").value = skill.icon || "";
 
-  document.getElementById("editSkillId").value =
-    skill.id;
-
-  document.getElementById("skillName").value =
-    skill.name;
-
-  document.getElementById("skillCategory").value =
-    skill.category;
-
-  document.getElementById("skillLevel").value =
-    skill.level;
-
-  document.getElementById("skillLevelValue").textContent =
-    skill.level;
-
-  document.getElementById("skillIcon").value =
-    skill.icon || "";
-
-
-  document
-    .getElementById("skillModal")
-    .classList.add("show");
+  const modal = document.getElementById("skillModal");
+  if (modal) modal.classList.add("show");
 
 }
 
@@ -935,53 +825,28 @@ function saveSkill(event) {
 
   event.preventDefault();
 
-
-  const id =
-    document.getElementById("editSkillId").value;
-
+  const id = document.getElementById("editSkillId").value;
 
   const skill = {
-
     id: id || generateId(),
-
-    name:
-      document.getElementById("skillName").value.trim(),
-
-    category:
-      document.getElementById("skillCategory").value,
-
-    level:
-      Number(document.getElementById("skillLevel").value),
-
-    icon:
-      document.getElementById("skillIcon").value.trim() || "✦"
-
+    name: document.getElementById("skillName").value.trim(),
+    category: document.getElementById("skillCategory").value,
+    level: Number(document.getElementById("skillLevel").value),
+    icon: document.getElementById("skillIcon").value.trim() || "✦"
   };
 
-
   if (id) {
-
-    const index =
-      data.skills.findIndex(item => item.id === id);
-
+    const index = data.skills.findIndex(item => item.id === id);
     if (index !== -1) {
       data.skills[index] = skill;
     }
-
     addActivity(`Updated skill: ${skill.name}`);
-
     showToast("Skill updated.");
-
   } else {
-
     data.skills.push(skill);
-
     addActivity(`Added skill: ${skill.name}`);
-
     showToast("Skill added.");
-
   }
-
 
   saveData();
   renderEverything();
@@ -992,28 +857,17 @@ function saveSkill(event) {
 
 function deleteSkill(id) {
 
-  const skill =
-    data.skills.find(item => item.id === id);
-
+  const skill = data.skills.find(item => item.id === id);
   if (!skill) return;
 
+  if (!confirm(`Delete "${skill.name}" from your skills?`)) return;
 
-  if (
-    !confirm(
-      `Delete "${skill.name}" from your skills?`
-    )
-  ) return;
-
-
-  data.skills =
-    data.skills.filter(item => item.id !== id);
-
+  data.skills = data.skills.filter(item => item.id !== id);
 
   addActivity(`Deleted skill: ${skill.name}`);
 
   saveData();
   renderEverything();
-
   showToast("Skill deleted.");
 
 }
@@ -1023,35 +877,17 @@ function deleteSkill(id) {
 
 function renderResume() {
 
-  const title =
-    document.getElementById("resumeTitle");
-
-  const url =
-    document.getElementById("resumeUrl");
-
-  const preview =
-    document.getElementById("resumePreview");
-
+  const title = document.getElementById("resumeTitle");
+  const url = document.getElementById("resumeUrl");
+  const preview = document.getElementById("resumePreview");
 
   if (!title) return;
 
+  title.value = data.resume.title || "";
+  url.value = data.resume.url || "";
 
-  title.value =
-    data.resume.title || "";
-
-  url.value =
-    data.resume.url || "";
-
-
-  if (data.resume.url) {
-
-    preview.href =
-      data.resume.url;
-
-  } else {
-
-    preview.href = "#";
-
+  if (preview) {
+    preview.href = data.resume.url || "#";
   }
 
 }
@@ -1061,20 +897,12 @@ function saveResume(event) {
 
   event.preventDefault();
 
-
-  data.resume.title =
-    document.getElementById("resumeTitle").value.trim();
-
-  data.resume.url =
-    document.getElementById("resumeUrl").value.trim();
-
+  data.resume.title = document.getElementById("resumeTitle").value.trim();
+  data.resume.url = document.getElementById("resumeUrl").value.trim();
 
   addActivity("Updated resume information");
-
   saveData();
-
   showToast("Resume updated.");
-
   renderEverything();
 
 }
@@ -1085,7 +913,6 @@ function saveResume(event) {
 function renderContact() {
 
   const fields = {
-
     contactEmail: data.contact.email,
     contactPhone: data.contact.phone,
     contactLocation: data.contact.location,
@@ -1093,22 +920,14 @@ function renderContact() {
     contactGithub: data.contact.github,
     contactInstagram: data.contact.instagram,
     contactAvailability: data.contact.availability
-
   };
 
-
-  Object.entries(fields).forEach(
-    ([id,value]) => {
-
-      const element =
-        document.getElementById(id);
-
-      if (element) {
-        element.value = value || "";
-      }
-
+  Object.entries(fields).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.value = value || "";
     }
-  );
+  });
 
 }
 
@@ -1117,37 +936,18 @@ function saveContact(event) {
 
   event.preventDefault();
 
-
   data.contact = {
-
-    email:
-      document.getElementById("contactEmail").value.trim(),
-
-    phone:
-      document.getElementById("contactPhone").value.trim(),
-
-    location:
-      document.getElementById("contactLocation").value.trim(),
-
-    linkedin:
-      document.getElementById("contactLinkedin").value.trim(),
-
-    github:
-      document.getElementById("contactGithub").value.trim(),
-
-    instagram:
-      document.getElementById("contactInstagram").value.trim(),
-
-    availability:
-      document.getElementById("contactAvailability").value
-
+    email: document.getElementById("contactEmail").value.trim(),
+    phone: document.getElementById("contactPhone").value.trim(),
+    location: document.getElementById("contactLocation").value.trim(),
+    linkedin: document.getElementById("contactLinkedin").value.trim(),
+    github: document.getElementById("contactGithub").value.trim(),
+    instagram: document.getElementById("contactInstagram").value.trim(),
+    availability: document.getElementById("contactAvailability").value
   };
 
-
   addActivity("Updated contact information");
-
   saveData();
-
   showToast("Contact information saved.");
 
 }
@@ -1155,15 +955,9 @@ function saveContact(event) {
 
 function clearContact() {
 
-  if (
-    !confirm(
-      "Are you sure you want to clear all contact information?"
-    )
-  ) return;
-
+  if (!confirm("Are you sure you want to clear all contact information?")) return;
 
   data.contact = {
-
     email: "",
     phone: "",
     location: "",
@@ -1171,15 +965,11 @@ function clearContact() {
     github: "",
     instagram: "",
     availability: "Currently unavailable"
-
   };
 
-
   addActivity("Cleared contact information");
-
   saveData();
   renderContact();
-
   showToast("Contact information cleared.");
 
 }
@@ -1189,44 +979,27 @@ function clearContact() {
 
 function renderJarvis() {
 
-  document.getElementById("jarvisName").value =
-    data.jarvis.name;
+  const nameElem = document.getElementById("jarvisName");
+  if (!nameElem) return;
 
-  document.getElementById("jarvisLanguage").value =
-    data.jarvis.language;
+  nameElem.value = data.jarvis.name;
+  document.getElementById("jarvisLanguage").value = data.jarvis.language;
+  document.getElementById("jarvisWake").value = (data.jarvis.wakePhrases || []).join(", ");
+  document.getElementById("jarvisGreeting").value = data.jarvis.greeting;
+  document.getElementById("jarvisEnabled").checked = data.jarvis.enabled;
+  document.getElementById("jarvisVoice").checked = data.jarvis.voice;
+  document.getElementById("jarvisNavigation").checked = data.jarvis.navigation;
+  document.getElementById("jarvisJokes").checked = data.jarvis.jokes;
 
-  document.getElementById("jarvisWake").value =
-    data.jarvis.wakePhrases.join(", ");
-
-  document.getElementById("jarvisGreeting").value =
-    data.jarvis.greeting;
-
-  document.getElementById("jarvisEnabled").checked =
-    data.jarvis.enabled;
-
-  document.getElementById("jarvisVoice").checked =
-    data.jarvis.voice;
-
-  document.getElementById("jarvisNavigation").checked =
-    data.jarvis.navigation;
-
-  document.getElementById("jarvisJokes").checked =
-    data.jarvis.jokes;
-
-
-  const liveText =
-    document.getElementById("jarvisLiveText");
-
-  if (data.jarvis.enabled) {
-
-    liveText.textContent = "ONLINE";
-    liveText.style.color = "var(--success)";
-
-  } else {
-
-    liveText.textContent = "OFFLINE";
-    liveText.style.color = "var(--danger)";
-
+  const liveText = document.getElementById("jarvisLiveText");
+  if (liveText) {
+    if (data.jarvis.enabled) {
+      liveText.textContent = "ONLINE";
+      liveText.style.color = "var(--success)";
+    } else {
+      liveText.textContent = "OFFLINE";
+      liveText.style.color = "var(--danger)";
+    }
   }
 
 }
@@ -1236,40 +1009,21 @@ function saveJarvis(event) {
 
   event.preventDefault();
 
-
   data.jarvis = {
-
-    enabled:
-      document.getElementById("jarvisEnabled").checked,
-
-    name:
-      document.getElementById("jarvisName").value.trim(),
-
-    language:
-      document.getElementById("jarvisLanguage").value,
-
-    wakePhrases:
-      document
-        .getElementById("jarvisWake")
-        .value
-        .split(",")
-        .map(item => item.trim())
-        .filter(Boolean),
-
-    voice:
-      document.getElementById("jarvisVoice").checked,
-
-    navigation:
-      document.getElementById("jarvisNavigation").checked,
-
-    jokes:
-      document.getElementById("jarvisJokes").checked,
-
-    greeting:
-      document.getElementById("jarvisGreeting").value.trim()
-
+    enabled: document.getElementById("jarvisEnabled").checked,
+    name: document.getElementById("jarvisName").value.trim(),
+    language: document.getElementById("jarvisLanguage").value,
+    wakePhrases: document
+      .getElementById("jarvisWake")
+      .value
+      .split(",")
+      .map(item => item.trim())
+      .filter(Boolean),
+    voice: document.getElementById("jarvisVoice").checked,
+    navigation: document.getElementById("jarvisNavigation").checked,
+    jokes: document.getElementById("jarvisJokes").checked,
+    greeting: document.getElementById("jarvisGreeting").value.trim()
   };
-
 
   addActivity("Updated JARVIS configuration");
 
@@ -1285,37 +1039,18 @@ function saveJarvis(event) {
 function testJarvis() {
 
   if (!data.jarvis.enabled) {
-
     showToast("JARVIS is currently disabled.");
-
     return;
-
   }
 
+  const message = data.jarvis.greeting || "Hello Ma'am. JARVIS is online.";
 
-  const message =
-    data.jarvis.greeting ||
-    "Hello Ma'am. JARVIS is online.";
-
-
-  if (
-    "speechSynthesis" in window &&
-    data.jarvis.voice
-  ) {
-
-    const speech =
-      new SpeechSynthesisUtterance(message);
-
-    speech.lang =
-      data.jarvis.language === "Telugu"
-        ? "te-IN"
-        : "en-IN";
-
+  if ("speechSynthesis" in window && data.jarvis.voice) {
+    const speech = new SpeechSynthesisUtterance(message);
+    speech.lang = data.jarvis.language === "Telugu" ? "te-IN" : "en-IN";
     speechSynthesis.cancel();
     speechSynthesis.speak(speech);
-
   }
-
 
   showToast("JARVIS test completed ⚡");
 
@@ -1326,43 +1061,32 @@ function testJarvis() {
 
 function renderMessages() {
 
-  const container =
-    document.getElementById("messagesList");
-
+  const container = document.getElementById("messagesList");
   if (!container) return;
 
-
   if (!data.messages.length) {
-
     container.innerHTML = `
       <div class="empty-state">
         ✉<br><br>
         No contact messages yet.
       </div>
     `;
-
     return;
-
   }
-
 
   container.innerHTML =
     data.messages.map(message => `
 
-      <div class="message-card ${
-        message.read ? "" : "unread"
-      }">
+      <div class="message-card ${message.read ? "" : "unread"}">
 
         <h3>
           ${escapeHTML(message.name || "Unknown")}
         </h3>
 
         <div class="message-meta">
-
           ${escapeHTML(message.email || "")}
           •
           ${escapeHTML(message.date || "")}
-
         </div>
 
         <div class="message-body">
@@ -1409,9 +1133,7 @@ function renderMessages() {
 
 function toggleMessageRead(id) {
 
-  const message =
-    data.messages.find(item => item.id === id);
-
+  const message = data.messages.find(item => item.id === id);
   if (!message) return;
 
   message.read = !message.read;
@@ -1426,8 +1148,7 @@ function deleteMessage(id) {
 
   if (!confirm("Delete this message?")) return;
 
-  data.messages =
-    data.messages.filter(item => item.id !== id);
+  data.messages = data.messages.filter(item => item.id !== id);
 
   addActivity("Deleted a contact message");
 
@@ -1443,26 +1164,16 @@ function deleteMessage(id) {
 
 function renderSettings() {
 
-  document.getElementById("siteTitle").value =
-    data.site.title || "";
+  const siteTitle = document.getElementById("siteTitle");
+  if (!siteTitle) return;
 
-  document.getElementById("siteTagline").value =
-    data.site.tagline || "";
-
-  document.getElementById("siteAnnouncement").value =
-    data.site.announcement || "";
-
-  document.getElementById("showProjects").checked =
-    data.site.showProjects;
-
-  document.getElementById("showSkills").checked =
-    data.site.showSkills;
-
-  document.getElementById("showJarvis").checked =
-    data.site.showJarvis;
-
-  document.getElementById("maintenanceMode").checked =
-    data.site.maintenance;
+  siteTitle.value = data.site.title || "";
+  document.getElementById("siteTagline").value = data.site.tagline || "";
+  document.getElementById("siteAnnouncement").value = data.site.announcement || "";
+  document.getElementById("showProjects").checked = data.site.showProjects;
+  document.getElementById("showSkills").checked = data.site.showSkills;
+  document.getElementById("showJarvis").checked = data.site.showJarvis;
+  document.getElementById("maintenanceMode").checked = data.site.maintenance;
 
 }
 
@@ -1471,32 +1182,15 @@ function saveSettings(event) {
 
   event.preventDefault();
 
-
   data.site = {
-
-    title:
-      document.getElementById("siteTitle").value.trim(),
-
-    tagline:
-      document.getElementById("siteTagline").value.trim(),
-
-    announcement:
-      document.getElementById("siteAnnouncement").value.trim(),
-
-    showProjects:
-      document.getElementById("showProjects").checked,
-
-    showSkills:
-      document.getElementById("showSkills").checked,
-
-    showJarvis:
-      document.getElementById("showJarvis").checked,
-
-    maintenance:
-      document.getElementById("maintenanceMode").checked
-
+    title: document.getElementById("siteTitle").value.trim(),
+    tagline: document.getElementById("siteTagline").value.trim(),
+    announcement: document.getElementById("siteAnnouncement").value.trim(),
+    showProjects: document.getElementById("showProjects").checked,
+    showSkills: document.getElementById("showSkills").checked,
+    showJarvis: document.getElementById("showJarvis").checked,
+    maintenance: document.getElementById("maintenanceMode").checked
   };
-
 
   addActivity("Updated site settings");
 
@@ -1515,17 +1209,12 @@ function addActivity(text) {
     data.activity = [];
   }
 
-
   data.activity.unshift({
-
     text,
     time: getDateTime()
-
   });
 
-
-  data.activity =
-    data.activity.slice(0, 10);
+  data.activity = data.activity.slice(0, 10);
 
   saveData();
 
@@ -1534,24 +1223,17 @@ function addActivity(text) {
 
 function renderActivity() {
 
-  const container =
-    document.getElementById("activityList");
-
+  const container = document.getElementById("activityList");
   if (!container) return;
 
-
   if (!data.activity.length) {
-
     container.innerHTML = `
       <div class="empty-state">
         No recent activity.
       </div>
     `;
-
     return;
-
   }
-
 
   container.innerHTML =
     data.activity.slice(0, 8).map(item => `
@@ -1585,26 +1267,13 @@ function renderActivity() {
 
 function exportData() {
 
-  const json =
-    JSON.stringify(data, null, 2);
-
-  const blob =
-    new Blob(
-      [json],
-      { type: "application/json" }
-    );
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const link =
-    document.createElement("a");
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
   link.href = url;
-
-  link.download =
-    "anitha-portfolio-admin-backup.json";
-
+  link.download = "anitha-portfolio-admin-backup.json";
   link.click();
 
   URL.revokeObjectURL(url);
@@ -1618,66 +1287,35 @@ function exportData() {
 
 function importData(event) {
 
-  const file =
-    event.target.files[0];
-
+  const file = event.target.files[0];
   if (!file) return;
 
-
-  const reader =
-    new FileReader();
-
+  const reader = new FileReader();
 
   reader.onload = function () {
-
     try {
+      const imported = JSON.parse(reader.result);
 
-      const imported =
-        JSON.parse(reader.result);
-
-
-      if (
-        !imported.projects ||
-        !imported.skills ||
-        !imported.contact
-      ) {
-
-        throw new Error(
-          "Invalid admin backup."
-        );
-
+      if (!imported.projects || !imported.skills || !imported.contact) {
+        throw new Error("Invalid admin backup.");
       }
 
-
       data = {
-
         ...structuredClone(defaultData),
         ...imported
-
       };
 
-
       saveData();
-
       renderEverything();
 
       addActivity("Imported admin backup");
-
       showToast("Data imported successfully.");
-
     } catch {
-
-      showToast(
-        "Invalid backup file."
-      );
-
+      showToast("Invalid backup file.");
     }
-
   };
 
-
   reader.readAsText(file);
-
   event.target.value = "";
 
 }
@@ -1685,18 +1323,11 @@ function importData(event) {
 
 function resetData() {
 
-  if (
-    !confirm(
-      "This will delete your current admin data and restore demo data. Continue?"
-    )
-  ) return;
+  if (!confirm("This will delete your current admin data and restore demo data. Continue?")) return;
 
-
-  data =
-    structuredClone(defaultData);
+  data = structuredClone(defaultData);
 
   saveData();
-
   renderEverything();
 
   showToast("Demo data restored.");
@@ -1720,13 +1351,9 @@ function escapeHTML(value) {
 
 function safeURL(value) {
 
-  const url =
-    String(value || "").trim();
+  const url = String(value || "").trim();
 
-  if (
-    url.startsWith("https://") ||
-    url.startsWith("http://")
-  ) {
+  if (url.startsWith("https://") || url.startsWith("http://")) {
     return url;
   }
 
@@ -1737,35 +1364,24 @@ function safeURL(value) {
 
 function safeMail(value) {
 
-  return encodeURIComponent(
-    String(value || "")
-  );
+  return encodeURIComponent(String(value || ""));
 
 }
 
 
 function showToast(message) {
 
-  const toast =
-    document.getElementById("toast");
+  const toast = document.getElementById("toast");
+  if (!toast) return;
 
-  toast.textContent =
-    message;
-
+  toast.textContent = message;
   toast.classList.add("show");
 
+  clearTimeout(window.toastTimer);
 
-  clearTimeout(
-    window.toastTimer
-  );
-
-
-  window.toastTimer =
-    setTimeout(() => {
-
-      toast.classList.remove("show");
-
-    }, 2500);
+  window.toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
 
 }
 
@@ -1774,15 +1390,11 @@ function showToast(message) {
 
 window.addEventListener("click", event => {
 
-  if (
-    event.target.id === "projectModal"
-  ) {
+  if (event.target.id === "projectModal") {
     closeProjectModal();
   }
 
-  if (
-    event.target.id === "skillModal"
-  ) {
+  if (event.target.id === "skillModal") {
     closeSkillModal();
   }
 
@@ -1792,30 +1404,8 @@ window.addEventListener("click", event => {
 document.addEventListener("keydown", event => {
 
   if (event.key === "Escape") {
-
     closeProjectModal();
     closeSkillModal();
-
   }
 
 });
-
-
-/* ================= PORTFOLIO INTEGRATION =================
-
-   Your main portfolio can read:
-
-   localStorage.getItem("anithaPortfolioAdminData")
-
-   and use:
-   data.projects
-   data.skills
-   data.contact
-   data.jarvis
-   data.site
-
-   IMPORTANT:
-   LocalStorage changes are only available in the
-   same browser/device. GitHub Pages does not provide
-   a backend database.
-========================================================= */
