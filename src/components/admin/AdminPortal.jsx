@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import LoginGate from './LoginGate';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
@@ -13,7 +14,7 @@ import MessagesTab from './MessagesTab';
 import SettingsTab from './SettingsTab';
 
 export default function AdminPortal() {
-  const { activeRole } = usePortfolio();
+  const { activeRole, setActiveRole } = usePortfolio();
 
   // Remember authentication state for this session (defaults to true if role already chosen)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -31,10 +32,14 @@ export default function AdminPortal() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsAuthenticated(false);
+    setActiveRole('guest');
     try {
       sessionStorage.removeItem('anithaAdminAuth');
+      if (isSupabaseConfigured) {
+        await supabase.auth.signOut();
+      }
     } catch (e) {
       console.warn(e);
     }

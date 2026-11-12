@@ -8,9 +8,12 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       showToast('Please fill out all contact fields.', 'warning');
       return;
@@ -18,13 +21,17 @@ export default function Contact() {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      addMessage(formData);
+    try {
+      await addMessage(formData);
       setIsSubmitting(false);
       setIsSubmitted(true);
       setFormData({ name: '', email: '', message: '' });
       showToast('Thank you! Your message has been sent to Anita.', 'success');
-    }, 700);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMessage(err.message || 'Failed to send message. Please try again.');
+      showToast('Failed to send message. Please try again.', 'danger');
+    }
   };
 
   return (
@@ -285,6 +292,12 @@ export default function Contact() {
                     className="form-textarea"
                   />
                 </div>
+
+                {errorMessage && (
+                  <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '0.8rem', fontWeight: 600 }}>
+                    {errorMessage}
+                  </div>
+                )}
 
                 <button
                   type="submit"

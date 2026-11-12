@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { defaultData } from '../data/defaultData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const STORAGE_KEY = 'anithaPortfolioAdminData';
 const SESSION_ROLE_KEY = 'anithaPortfolioActiveRole';
@@ -10,7 +11,6 @@ function getInitialData() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
       return defaultData;
     }
     const parsed = JSON.parse(saved);
@@ -42,6 +42,7 @@ export function PortfolioProvider({ children }) {
   const [activeRole, setActiveRoleState] = useState(getInitialRole); // 'admin' | 'user' | 'guest'
   const [isJarvisOpen, setIsJarvisOpen] = useState(false);
   const [toast, setToast] = useState({ message: '', type: 'info', visible: false });
+  const [isLoading, setIsLoading] = useState(false);
 
   // Persist role in sessionStorage
   const setActiveRole = useCallback((role) => {
@@ -53,27 +54,12 @@ export function PortfolioProvider({ children }) {
     }
   }, []);
 
-  // Toast helper (defined early so other callbacks can reference it)
+  // Toast notification helper
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type, visible: true });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, visible: false }));
     }, 3200);
-  }, []);
-
-  // Sync across tabs via window 'storage' listener
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          setData(JSON.parse(e.newValue));
-        } catch (err) {
-          console.error('Storage sync error:', err);
-        }
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Activity logger helper
@@ -106,37 +92,279 @@ export function PortfolioProvider({ children }) {
     return true;
   }, [activeRole, showToast]);
 
-  /* ── PROJECT CRUD ── */
-  const addProject = useCallback((project) => {
-    if (!canEdit()) return false;
-    const newProject = {
-      ...project,
-      id: 'proj-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
-    };
-    setData((prev) => {
-      const next = { ...prev, projects: [newProject, ...prev.projects] };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
-      return next;
+  // Fetch all data from Supabase
+  const fetchAllData = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+
+    try {
+      setIsLoading(true);
+
+      // 1. Fetch Projects
+      const { data: dbProjects, error: projErr } = await supabase
+        .from('projects')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (projErr) console.warn('Supabase projects fetch error:', projErr.message);
+
+      // 2. Fetch Skills
+      const { data: dbSkills, error: skillErr } = await supabase
+        .from('skills')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('level', { ascending: false });
+
+      if (skillErr) console.warn('Supabase skills fetch error:', skillErr.message);
+
+      // 3. Fetch Site Settings
+      const { data: dbSite, error: siteErr } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'primary')
+        .maybeSingle();
+
+      if (siteErr) console.warn('Supabase site_settings fetch error:', siteErr.message);
+
+      // 4. Fetch Resume Settings
+      const { data: dbResume, error: resErr } = await supabase
+        .from('resume_settings')
+        .select('*')
+        .eq('id', 'primary')
+        .maybeSingle();
+
+      if (resErr) console.warn('Supabase resume_settings fetch error:', resErr.message);
+
+      // 5. Fetch Jarvis Settings
+      const { data: dbJarvis, error: jarvErr } = await supabase
+        .from('jarvis_settings')
+        .select('*')
+        .eq('id', 'primary')
+        .maybeSingle();
+
+      if (jarvErr) console.warn('Supabase jarvis_settings fetch error:', jarvErr.message);
+
+      // 6. Fetch Contact Messages (Only works if user is authenticated admin, RLS protects this)
+      let dbMessages = null;
+      if (activeRole === 'admin') {
+        const { data: msgs, error: msgErr } = await supabase
+          .from('contact_messages')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!msgErr && msgs) {
+          dbMessages = msgs.map(m => ({
+            id: m.id,
+            name: m.name,
+            email: m.email,
+            message: m.message,
+            read: m.read,
+            date: new Date(m.created_at).toLocaleString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          }));
+        }
+      }
+
+      setData((prev) => {
+        const next = {
+          ...prev,
+          projects: (dbProjects && dbProjects.length > 0) ? dbProjects : prev.projects,
+          skills: (dbSkills && dbSkills.length > 0) ? dbSkills : prev.skills,
+          site: dbSite ? {
+            title: dbSite.title || prev.site.title,
+            tagline: dbSite.tagline || prev.site.tagline,
+            announcement: dbSite.announcement || prev.site.announcement,
+            showProjects: dbSite.show_projects ?? prev.site.showProjects,
+            showSkills: dbSite.show_skills ?? prev.site.showSkills,
+            showJarvis: dbSite.show_jarvis ?? prev.site.showJarvis,
+            maintenance: dbSite.maintenance ?? prev.site.maintenance
+          } : prev.site,
+          resume: dbResume ? {
+            title: dbResume.title || prev.resume.title,
+            url: dbResume.url || prev.resume.url
+          } : prev.resume,
+          jarvis: dbJarvis ? {
+            ...prev.jarvis,
+            enabled: dbJarvis.enabled ?? prev.jarvis.enabled,
+            name: dbJarvis.name || prev.jarvis.name,
+            language: dbJarvis.language || prev.jarvis.language,
+            wakePhrases: dbJarvis.wake_phrases || prev.jarvis.wakePhrases,
+            voice: dbJarvis.voice ?? prev.jarvis.voice,
+            greeting: dbJarvis.greeting || prev.jarvis.greeting
+          } : prev.jarvis,
+          messages: dbMessages !== null ? dbMessages : prev.messages
+        };
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch (e) {
+          console.warn(e);
+        }
+        return next;
+      });
+    } catch (err) {
+      console.error('Error synchronizing with Supabase:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeRole]);
+
+  // Initial load & Auth Listener
+  useEffect(() => {
+    fetchAllData();
+
+    if (!isSupabaseConfigured) return;
+
+    // Check active session on mount
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        // Verify against admin_users table
+        const { data: adminRow } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (adminRow) {
+          setActiveRole('admin');
+          sessionStorage.setItem('anithaAdminAuth', 'true');
+        }
+      }
     });
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: adminRow } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (adminRow) {
+          setActiveRole('admin');
+          sessionStorage.setItem('anithaAdminAuth', 'true');
+          fetchAllData();
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setActiveRole('guest');
+        sessionStorage.removeItem('anithaAdminAuth');
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [fetchAllData, setActiveRole]);
+
+  /* ── PROJECT CRUD ── */
+  const addProject = useCallback(async (project) => {
+    if (!canEdit()) return false;
+
+    const newProject = {
+      name: project.name,
+      category: project.category,
+      description: project.description,
+      link: project.link || '',
+      github: project.github || '',
+      tech: project.tech || '',
+      featured: Boolean(project.featured),
+      display_order: Number(project.display_order) || 0
+    };
+
+    if (isSupabaseConfigured) {
+      const { data: inserted, error } = await supabase
+        .from('projects')
+        .insert([newProject])
+        .select()
+        .single();
+
+      if (error) {
+        showToast(`Failed to save project: ${error.message}`, 'danger');
+        return false;
+      }
+      if (inserted) {
+        setData((prev) => {
+          const next = { ...prev, projects: [inserted, ...prev.projects] };
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
+          return next;
+        });
+      }
+    } else {
+      const localProject = {
+        ...newProject,
+        id: 'proj-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+      };
+      setData((prev) => {
+        const next = { ...prev, projects: [localProject, ...prev.projects] };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
+        return next;
+      });
+    }
+
     addActivity(`Added new project: "${project.name}"`);
     showToast(`Project "${project.name}" added successfully!`, 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const updateProject = useCallback((id, updatedFields) => {
+  const updateProject = useCallback(async (id, updatedFields) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          name: updatedFields.name,
+          category: updatedFields.category,
+          description: updatedFields.description,
+          link: updatedFields.link,
+          github: updatedFields.github,
+          tech: updatedFields.tech,
+          featured: updatedFields.featured,
+          display_order: updatedFields.display_order
+        })
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to update project: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
-      const next = { ...prev, projects: prev.projects.map((p) => (p.id === id ? { ...p, ...updatedFields } : p)) };
+      const next = {
+        ...prev,
+        projects: prev.projects.map((p) => (p.id === id ? { ...p, ...updatedFields } : p))
+      };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity(`Updated project: "${updatedFields.name || id}"`);
     showToast('Project updated successfully.', 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const deleteProject = useCallback((id) => {
+  const deleteProject = useCallback(async (id) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to delete project: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     let deletedName = id;
     setData((prev) => {
       const proj = prev.projects.find((p) => p.id === id);
@@ -145,43 +373,108 @@ export function PortfolioProvider({ children }) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity(`Deleted project: "${deletedName}"`);
     showToast('Project removed.', 'info');
     return true;
   }, [canEdit, addActivity, showToast]);
 
   /* ── SKILLS CRUD ── */
-  const addSkill = useCallback((skill) => {
+  const addSkill = useCallback(async (skill) => {
     if (!canEdit()) return false;
+
     const newSkill = {
-      ...skill,
-      id: 'skill-' + Date.now().toString(36),
-      level: Number(skill.level) || 80
+      name: skill.name,
+      category: skill.category,
+      level: Number(skill.level) || 80,
+      icon: skill.icon || '✦',
+      display_order: Number(skill.display_order) || 0
     };
-    setData((prev) => {
-      const next = { ...prev, skills: [...prev.skills, newSkill] };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
-      return next;
-    });
+
+    if (isSupabaseConfigured) {
+      const { data: inserted, error } = await supabase
+        .from('skills')
+        .insert([newSkill])
+        .select()
+        .single();
+
+      if (error) {
+        showToast(`Failed to add skill: ${error.message}`, 'danger');
+        return false;
+      }
+      if (inserted) {
+        setData((prev) => {
+          const next = { ...prev, skills: [...prev.skills, inserted] };
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
+          return next;
+        });
+      }
+    } else {
+      const localSkill = {
+        ...newSkill,
+        id: 'skill-' + Date.now().toString(36)
+      };
+      setData((prev) => {
+        const next = { ...prev, skills: [...prev.skills, localSkill] };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
+        return next;
+      });
+    }
+
     addActivity(`Added technical skill: "${skill.name}"`);
     showToast(`Skill "${skill.name}" added successfully!`, 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const updateSkill = useCallback((id, updatedFields) => {
+  const updateSkill = useCallback(async (id, updatedFields) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('skills')
+        .update({
+          name: updatedFields.name,
+          category: updatedFields.category,
+          level: Number(updatedFields.level),
+          icon: updatedFields.icon
+        })
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to update skill: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
-      const next = { ...prev, skills: prev.skills.map((s) => (s.id === id ? { ...s, ...updatedFields, level: Number(updatedFields.level) || s.level } : s)) };
+      const next = {
+        ...prev,
+        skills: prev.skills.map((s) => (s.id === id ? { ...s, ...updatedFields, level: Number(updatedFields.level) || s.level } : s))
+      };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity(`Updated skill: "${updatedFields.name || id}"`);
     showToast('Skill updated.', 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const deleteSkill = useCallback((id) => {
+  const deleteSkill = useCallback(async (id) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('skills')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to delete skill: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     let deletedName = id;
     setData((prev) => {
       const skill = prev.skills.find((s) => s.id === id);
@@ -190,19 +483,38 @@ export function PortfolioProvider({ children }) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity(`Deleted skill: "${deletedName}"`);
     showToast('Skill deleted.', 'info');
     return true;
   }, [canEdit, addActivity, showToast]);
 
   /* ── RESUME & CONTACT ── */
-  const updateResume = useCallback((resumeData) => {
+  const updateResume = useCallback(async (resumeData) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('resume_settings')
+        .upsert({
+          id: 'primary',
+          title: resumeData.title,
+          url: resumeData.url,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        showToast(`Failed to update resume: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
       const next = { ...prev, resume: { ...prev.resume, ...resumeData } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity('Updated resume link information');
     showToast('Resume settings saved.', 'success');
     return true;
@@ -210,72 +522,176 @@ export function PortfolioProvider({ children }) {
 
   const updateContact = useCallback((contactData) => {
     if (!canEdit()) return false;
+
     setData((prev) => {
       const next = { ...prev, contact: { ...prev.contact, ...contactData } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity('Updated contact & social info');
     showToast('Contact details saved.', 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
   /* ── JARVIS SETTINGS ── */
-  const updateJarvis = useCallback((jarvisData) => {
+  const updateJarvis = useCallback(async (jarvisData) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('jarvis_settings')
+        .upsert({
+          id: 'primary',
+          name: jarvisData.name,
+          language: jarvisData.language,
+          greeting: jarvisData.greeting,
+          voice: jarvisData.voice,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        showToast(`Failed to update JARVIS settings: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
       const next = { ...prev, jarvis: { ...prev.jarvis, ...jarvisData } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity('Updated JARVIS voice & response settings');
     showToast('JARVIS configuration saved.', 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const toggleJarvisVoice = useCallback((enabled) => {
+  const toggleJarvisVoice = useCallback(async (enabled) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      await supabase
+        .from('jarvis_settings')
+        .update({ voice: enabled, updated_at: new Date().toISOString() })
+        .eq('id', 'primary');
+    }
+
     setData((prev) => {
       const next = { ...prev, jarvis: { ...prev.jarvis, voice: enabled } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     showToast(`JARVIS voice synthesizer ${enabled ? 'enabled' : 'muted'}.`, 'info');
     return true;
   }, [canEdit, showToast]);
 
   /* ── SITE SETTINGS & MAINTENANCE ── */
-  const updateSiteSettings = useCallback((siteData) => {
+  const updateSiteSettings = useCallback(async (siteData) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+          id: 'primary',
+          title: siteData.title,
+          tagline: siteData.tagline,
+          announcement: siteData.announcement,
+          show_projects: siteData.showProjects,
+          show_skills: siteData.showSkills,
+          show_jarvis: siteData.showJarvis,
+          maintenance: siteData.maintenance,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        showToast(`Failed to update site settings: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
       const next = { ...prev, site: { ...prev.site, ...siteData } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity('Updated global site settings');
     showToast('Site settings updated.', 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
-  const toggleMaintenance = useCallback((isMaintenance) => {
+  const toggleMaintenance = useCallback(async (isMaintenance) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      await supabase
+        .from('site_settings')
+        .update({ maintenance: isMaintenance, updated_at: new Date().toISOString() })
+        .eq('id', 'primary');
+    }
+
     setData((prev) => {
       const next = { ...prev, site: { ...prev.site, maintenance: isMaintenance } };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity(`Site maintenance mode turned ${isMaintenance ? 'ON' : 'OFF'}`);
     showToast(`Maintenance mode turned ${isMaintenance ? 'ON' : 'OFF'}.`, isMaintenance ? 'warning' : 'success');
     return true;
   }, [canEdit, addActivity, showToast]);
 
   /* ── MESSAGES INBOX ── */
-  const addMessage = useCallback((msg) => {
-    const newMsg = {
-      id: 'msg-' + Date.now().toString(36),
+  const addMessage = useCallback(async (msg) => {
+    const trimmed = {
       name: msg.name.trim(),
       email: msg.email.trim(),
-      message: msg.message.trim(),
+      message: msg.message.trim()
+    };
+
+    if (isSupabaseConfigured) {
+      const { data: inserted, error } = await supabase
+        .from('contact_messages')
+        .insert([trimmed])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase contact submission error:', error);
+        throw new Error(error.message);
+      }
+
+      const formatted = {
+        id: inserted.id,
+        name: inserted.name,
+        email: inserted.email,
+        message: inserted.message,
+        read: inserted.read,
+        date: new Date(inserted.created_at).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      };
+
+      setData((prev) => {
+        const next = { ...prev, messages: [formatted, ...(prev.messages || [])] };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
+        return next;
+      });
+      addActivity(`New visitor message received from ${formatted.name}`);
+      return true;
+    }
+
+    // Local fallback
+    const localMsg = {
+      id: 'msg-' + Date.now().toString(36),
+      ...trimmed,
       date: new Date().toLocaleString('en-IN', {
         day: '2-digit',
         month: 'short',
@@ -285,32 +701,63 @@ export function PortfolioProvider({ children }) {
       }),
       read: false
     };
+
     setData((prev) => {
-      const next = { ...prev, messages: [newMsg, ...(prev.messages || [])] };
+      const next = { ...prev, messages: [localMsg, ...(prev.messages || [])] };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
-    addActivity(`New visitor message received from ${newMsg.name}`);
+    addActivity(`New visitor message received from ${localMsg.name}`);
     return true;
   }, [addActivity]);
 
-  const toggleMessageRead = useCallback((id) => {
+  const toggleMessageRead = useCallback(async (id) => {
     if (!canEdit()) return false;
+
+    const currentMsg = (data.messages || []).find((m) => m.id === id);
+    const nextRead = !currentMsg?.read;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ read: nextRead })
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to update message status: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
-      const next = { ...prev, messages: prev.messages.map((m) => (m.id === id ? { ...m, read: !m.read } : m)) };
+      const next = { ...prev, messages: prev.messages.map((m) => (m.id === id ? { ...m, read: nextRead } : m)) };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
     return true;
-  }, [canEdit]);
+  }, [canEdit, data.messages, showToast]);
 
-  const deleteMessage = useCallback((id) => {
+  const deleteMessage = useCallback(async (id) => {
     if (!canEdit()) return false;
+
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        showToast(`Failed to delete message: ${error.message}`, 'danger');
+        return false;
+      }
+    }
+
     setData((prev) => {
       const next = { ...prev, messages: prev.messages.filter((m) => m.id !== id) };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.warn(e); }
       return next;
     });
+
     addActivity('Deleted a visitor message');
     showToast('Message deleted.', 'info');
     return true;
@@ -372,6 +819,8 @@ export function PortfolioProvider({ children }) {
     <PortfolioContext.Provider
       value={{
         data,
+        isLoading,
+        fetchAllData,
         currentView,
         setCurrentView,
         activeRole,

@@ -1,27 +1,66 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { Shield, Users, UserCheck, Eye, Lock, User } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { Shield, Users, UserCheck, Eye, Lock, Mail, Loader2 } from 'lucide-react';
 
 export default function LoginGate({ onAuthenticated }) {
-  const { setActiveRole, setCurrentView, showToast } = usePortfolio();
+  const { setActiveRole, setCurrentView, showToast, fetchAllData } = usePortfolio();
 
   const [selectedRole, setSelectedRole] = useState('admin');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (selectedRole === 'admin') {
-      if (username === 'admin' && password === 'admin123') {
+      if (!isSupabaseConfigured) {
+        setError('Supabase is not configured yet. Please set VITE_SUPABASE_ANON_KEY in your environment.');
+        return;
+      }
+
+      try {
+        setIsAuthenticating(true);
+
+        // 1. Authenticate with Supabase Auth
+        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password
+        });
+
+        if (authErr) {
+          setError(authErr.message || 'Invalid email or password.');
+          setIsAuthenticating(false);
+          return;
+        }
+
+        // 2. Strict Whitelist Check: Verify user is an authorized admin
+        const { data: adminRow, error: adminErr } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (adminErr || !adminRow) {
+          await supabase.auth.signOut();
+          setError('Access Denied: This account is authenticated but not whitelisted in the admin_users table.');
+          setIsAuthenticating(false);
+          return;
+        }
+
+        // 3. Grant Admin Session
         setActiveRole('admin');
         sessionStorage.setItem('anithaAdminAuth', 'true');
-        showToast('Authenticated as Administrator (Full Edit Access).', 'success');
+        showToast('Authenticated as Administrator (Full Access).', 'success');
+        if (fetchAllData) fetchAllData();
         onAuthenticated();
-      } else {
-        setError('Invalid credentials.');
+      } catch (err) {
+        setError(err.message || 'An unexpected error occurred during authentication.');
+      } finally {
+        setIsAuthenticating(false);
       }
     } else if (selectedRole === 'user') {
       setActiveRole('user');
@@ -204,20 +243,21 @@ export default function LoginGate({ onAuthenticated }) {
           {selectedRole === 'admin' ? (
             <div>
               <div className="form-group">
-                <label className="form-label" htmlFor="loginUsername">
-                  Admin Username
+                <label className="form-label" htmlFor="loginEmail">
+                  Admin Email
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
-                    id="loginUsername"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="loginEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="form-input"
                     style={{ paddingLeft: '2.5rem' }}
+                    placeholder="admin@example.com"
                     required
                   />
-                  <User size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <Mail size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
 
@@ -233,6 +273,7 @@ export default function LoginGate({ onAuthenticated }) {
                     onChange={(e) => setPassword(e.target.value)}
                     className="form-input"
                     style={{ paddingLeft: '2.5rem' }}
+                    placeholder="••••••••"
                     required
                   />
                   <Lock size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
@@ -264,8 +305,20 @@ export default function LoginGate({ onAuthenticated }) {
             </div>
           )}
 
-          <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.9rem' }}>
-            Enter Control Center &rarr;
+          <button
+            type="submit"
+            disabled={isAuthenticating}
+            className="btn btn-gold"
+            style={{ width: '100%', padding: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+          >
+            {isAuthenticating ? (
+              <>
+                <Loader2 size={16} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                Authenticating...
+              </>
+            ) : (
+              <>Enter Control Center &rarr;</>
+            )}
           </button>
         </form>
 
